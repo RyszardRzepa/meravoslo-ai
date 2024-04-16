@@ -9,9 +9,19 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
+import { getMutableAIState, useActions, useUIState } from "ai/rsc";
+import { AI } from "@/app/action";
+import BookingForm from "@/components/booking-form";
 
 type Props = {
   title: string;
@@ -58,6 +68,8 @@ const CardTitle = ({ text }: { text: string }) => {
 
 function Recommendations({ data, title }: Props) {
   const router = useRouter();
+  const [messages, setMessages] = useUIState<typeof AI>();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div>
@@ -97,12 +109,25 @@ function Recommendations({ data, title }: Props) {
                 </span>
               </p>
             </div>
-            <div className="mt-1">
-              <Button onClick={() => router.push(recommendation.bookingUrl)}>Bestill bord</Button>
-            </div>
+            <form
+              className="mt-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setDialogOpen(!dialogOpen);
+              }}>
+              <Button type="submit">
+                Bestill bord
+              </Button>
+            </form>
           </div>
         ))}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={() => setDialogOpen(false)} modal>
+        <DialogContent>
+          <BookingForm setDialogOpen={setDialogOpen}/>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -78,7 +78,7 @@ export default function Page() {
             }}
           />
         )}
-        <ChatScrollAnchor trackVisibility={true} />
+        <ChatScrollAnchor trackVisibility={false} />
       </div>
 
       <div
@@ -121,7 +121,6 @@ export default function Page() {
                 }
               }}
             >
-              {/*<Recommendations response="Response" recommendations={data} />*/}
               <div
                 className="relative flex flex-col w-full px-8 overflow-hidden max-h-60 grow bg-background sm:rounded-md sm:border sm:px-12">
                 <Tooltip>

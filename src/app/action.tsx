@@ -5,11 +5,37 @@ import remarkGfm from 'remark-gfm';
 
 import { BotCard, BotMessage, spinner} from '@/components/llm-stocks';
 
-import { runOpenAICompletion } from '@/lib/utils';
+import { runOpenAICompletion, sleep } from '@/lib/utils';
 import { z } from 'zod';
 import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
 import Recommendations from '@/components/recommendations';
 import { openai, searchDocs, supabase } from "@/lib/db";
+import BookingForm from "@/components/booking-form";
+
+async function submitBookingState() {
+  'use server';
+
+  const aiState = getMutableAIState<typeof AI>();
+
+  aiState.update([...aiState.get(), {
+    role: 'system', content: 'Starting the booking process...', name: 'startBookingProcess',
+  }]);
+
+  const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
+
+  reply.done(<BotCard>
+    <div>Takk for Booking hos Maximus Trattoria 😋. Er det noe
+      annet du lurer på?</div>
+  </BotCard>);
+
+  aiState.done([...aiState.get(), {
+    role: 'system', name: 'startBookingProcess', content: 'Starting the booking process...',
+  }]);
+
+  return {
+    id: Date.now(), display: reply.value,
+  };
+}
 
 async function submitUserMessage(content: string) {
   'use server';
@@ -132,5 +158,6 @@ const initialUIState: {
 export const AI = createAI({
   actions: {
     submitUserMessage,
+    submitBookingState,
   }, initialUIState, initialAIState,
 });
