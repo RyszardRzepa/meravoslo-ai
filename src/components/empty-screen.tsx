@@ -27,8 +27,8 @@ export function EmptyScreen({
   submitMessage: (message: string) => void;
 }) {
   return (
-    <div className="mx-auto max-w-2xl px-4">
-      <div className="rounded-lg border bg-background p-8 mb-4">
+    <div className="mx-auto px-4">
+      <div className="rounded-lg border bg-background p-8">
         <h1 className="mb-2 text-lg font-semibold">
           Testing prompts
         </h1>

@@ -53,7 +53,7 @@ async function submitUserMessage(content: string) {
   const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
 
   const completion = runOpenAICompletion(openai, {
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-3.5-turbo-0125',
     stream: true,
     messages: [{
       role: 'system',
@@ -64,6 +64,7 @@ Respond in markdown format. Respond in the user's language. If unable to answer 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
+- Alwasy return 3 suggestions for followup questions.
 
 Answer the question based only on the following context:
 Context: <context> ${context} </context>

@@ -73,7 +73,7 @@ function Recommendations({ data, title }: Props) {
 
   return (
     <div>
-      <p className="pb-2 text-lg">{title}</p>
+      <p className="pb-2">{title}</p>
       <div className="flex gap-5 flex-col">
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
@@ -83,7 +83,7 @@ function Recommendations({ data, title }: Props) {
                 {recommendation?.images.map(image => (
                   <CarouselItem key={image.url}>
                     <article className="w-full relative isolate rounded-xl flex flex-col">
-                      <img src={image?.url} className="w-full object-cover rounded-xl h:80 md:h-96"/>
+                      <img src={image?.url} className="w-full object-cover rounded-xl h:80 md:h-80"/>
                       <div
                         className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/10 rounded-xl "></div>
                       <div className="absolute bottom-0 p-2 overflow-hidden text-sm leading-6 text-gray-300">

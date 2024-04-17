@@ -62,7 +62,6 @@ export default function RootLayout({
         disableTransitionOnChange
       >
         <div className="flex flex-col min-h-screen">
-          {/*<Header />*/}
           <main className="flex flex-col flex-1 bg-muted/50 dark:bg-background">
             {children}
           </main>
@@ -70,6 +69,7 @@ export default function RootLayout({
       </Providers>
     </AI>
     <Analytics/>
+    <div className="hidden md:block absolute left-3 bottom-1 text-white p-2 bg-blue-500">md</div>
     </body>
     </html>
   );
