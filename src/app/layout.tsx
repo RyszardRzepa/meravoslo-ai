@@ -52,7 +52,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
     <head>
       <link href="https://firebasestorage.googleapis.com/v0/b/notioncrm-27d2c.appspot.com/o/index-B8ylSJLO.css?alt=media&token=1b41d10c-172b-4fb8-9b22-da29c9b38cdb" rel="stylesheet"/>
-      {/*<script src="https://firebasestorage.googleapis.com/v0/b/notioncrm-27d2c.appspot.com/o/main.js?alt=media&token=b0f5223b-ad86-4b40-8f23-250fb8896709" defer></script>*/}
     </head>
     <body
       className={`font-sans antialiased ${GeistSans.variable} ${GeistMono.variable}`}
