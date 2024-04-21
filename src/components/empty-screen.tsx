@@ -30,9 +30,8 @@ export function EmptyScreen({
     <div className="mx-auto px-4">
       <div className="rounded-lg bg-peach p-8 border-peachDark border-2">
         <h1 className="mb-2 text-lg font-semibold">
-          Testing prompts
+          Hei! Hvordan kan jeg hjelpe deg i dag?
         </h1>
-        <p className="leading-normal text-muted-foreground">Try an example:</p>
         <div className="mt-4 flex flex-col items-start space-y-2 mb-4">
           {exampleMessages.map((message, index) => (
             <Button
