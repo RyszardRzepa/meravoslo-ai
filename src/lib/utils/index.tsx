@@ -140,3 +140,10 @@ export const runAsyncFnWithoutBlocking = (
 
 export const sleep = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));
+
+export const scrollToTheChatEnd = () => {
+  const chat = document.getElementById('chat');
+  if (chat) {
+    chat.scrollTop = chat.scrollHeight;
+  }
+}

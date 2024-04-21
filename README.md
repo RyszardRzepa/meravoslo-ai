@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+Extract data from csv
+https://chat.openai.com/share/5e08eaea-fded-4f8b-9163-84b0239bb4fc
+
+
 ```bash
 npm run dev
 # or

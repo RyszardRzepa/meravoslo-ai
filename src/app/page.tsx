@@ -5,7 +5,7 @@ import Textarea from 'react-textarea-autosize';
 
 import { useUIState, useActions } from 'ai/rsc';
 import { UserMessage } from '@/components/llm-stocks/message';
-import { type AI } from './action';
+import { type AI } from './actions/ai';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import {
@@ -17,6 +17,11 @@ import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { ChatList } from '@/components/chat-list';
 import { EmptyScreen } from '@/components/empty-screen';
+import { supabaseFrontent } from "@/lib/supabase/frontend";
+import { saveMessage } from "@/app/actions/db";
+import { Role } from "@/lib/types";
+
+const threadId = new Date().getTime();
 
 export default function Page() {
   const [messages, setMessages] = useUIState<typeof AI>();
@@ -24,6 +29,22 @@ export default function Page() {
   const [inputValue, setInputValue] = useState('');
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    const login = async () => {
+      const { data } = await supabaseFrontent.auth.getSession();
+      if (!data.session) {
+        const { data, error } = await supabaseFrontent.auth.signInAnonymously()
+        if (data) {
+          setUid(data?.user?.id!)
+        }
+        return
+      }
+      setUid(data.session.user.id)
+    }
+    login()
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -58,17 +79,26 @@ export default function Page() {
           ) : (
             <EmptyScreen
               submitMessage={async message => {
+                const id = Date.now();
+
+                saveMessage({ message, role: Role.User, uid: uid!, threadId });
+
                 // Add user message UI
                 setMessages(currentMessages => [
                   ...currentMessages,
                   {
-                    id: Date.now(),
+                    id,
                     display: <UserMessage>{message}</UserMessage>,
                   },
                 ]);
 
                 // Submit and get response message
-                const responseMessage = await submitUserMessage(message);
+                const responseMessage = await submitUserMessage({
+                  content: message,
+                  uid: uid!,
+                  threadId,
+                });
+
                 setMessages(currentMessages => [
                   ...currentMessages,
                   responseMessage,
@@ -101,6 +131,8 @@ export default function Page() {
                 setInputValue('');
                 if (!value) return;
 
+                saveMessage({ message: value, role: Role.User, uid: uid!, threadId });
+
                 // Add user message UI
                 setMessages(currentMessages => [
                   ...currentMessages,
@@ -112,11 +144,21 @@ export default function Page() {
 
                 try {
                   // Submit and get response message
-                  const responseMessage = await submitUserMessage(value);
+                  const responseMessage = await submitUserMessage({
+                    threadId,
+                    uid: uid!,
+                    content: value,
+                  });
+
+                  console.log("responseMessage", responseMessage)
                   setMessages(currentMessages => [
                     ...currentMessages,
                     responseMessage,
                   ]);
+
+                  // Navigate to the end of the chat
+                  const element = document.getElementById('chat-list');
+                  element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (error) {
                   // You may want to show a toast or trigger an error state.
                   console.error(error);

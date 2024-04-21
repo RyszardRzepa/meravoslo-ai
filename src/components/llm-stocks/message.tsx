@@ -1,7 +1,12 @@
 'use client';
 
-import { IconAI, IconUser } from '@/components/ui/icons';
-import { cn } from '@/lib/utils';
+import { IconAI, IconArrowRight, IconUser } from '@/components/ui/icons';
+import { cn, scrollToTheChatEnd } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { useActions, useUIState } from "ai/rsc";
+import type { AI } from "@/app/actions/ai";
+import { saveMessage } from "@/app/actions/db";
+import { Role } from "@/lib/types";
 
 export function UserMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -28,7 +33,7 @@ export function BotMessage({
       <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-peach text-primary-foreground">
         <IconAI />
       </div>
-      <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md p-4 bg-peach border border-peachDark">
+      <div className="p-4 mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md bg-peach border border-peachDark">
         {children}
       </div>
     </div>
@@ -54,6 +59,75 @@ export function BotCard({
         <IconAI />
       </div>
       <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md p-4 bg-peach border border-peachDark">{children}</div>
+    </div>
+  );
+}
+
+export function SuggestionCard({
+                                 suggestions,
+                                 showAvatar = true,
+                                 threadId,
+                                 uid,
+                               }: {
+  showAvatar?: boolean;
+  suggestions: string[];
+  uid: string;
+  threadId: number;
+}) {
+  const [messages, setMessages] = useUIState<typeof AI>();
+  const { submitUserMessage } = useActions<typeof AI>();
+
+  return (
+    <div className="group relative sm:flex gap-3 items-start sm:mt-4">
+      <div
+        className={cn(
+          'flex ml-8 shrink-0 select-none items-center justify-center rounded-md' +
+          ' text-primary-foreground',
+          !showAvatar && 'invisible',
+        )}
+      >
+      </div>
+      <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md">
+        <div className="flex flex-col items-start space-y-2 mb-4">
+          {suggestions && suggestions.map((suggestion, index) => (
+            <Button
+              key={index}
+              variant="link"
+              className="h-auto p-0 text-sm text-left text-gray-800"
+              onClick={async () => {
+                saveMessage({ message: suggestion, role: Role.User, uid, threadId });
+
+                setMessages(currentMessages => [
+                  // Remove the last message
+                  ...currentMessages,
+                  {
+                    id: Date.now(),
+                    display: <UserMessage>{suggestion}</UserMessage>,
+                    message: suggestion,
+                  },
+                ]);
+
+                // Submit and get response message
+                const responseMessage = await submitUserMessage({
+                  content: suggestion,
+                  uid,
+                  threadId,
+                });
+
+                setMessages(currentMessages => [
+                  ...currentMessages,
+                  responseMessage,
+                ]);
+
+                scrollToTheChatEnd();
+              }}
+            >
+              <IconArrowRight className="mr-2 text-muted-foreground"/>
+              <p>{suggestion}</p>
+            </Button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
