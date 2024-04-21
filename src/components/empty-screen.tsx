@@ -28,7 +28,7 @@ export function EmptyScreen({
 }) {
   return (
     <div className="mx-auto px-4">
-      <div className="rounded-lg border bg-background p-8">
+      <div className="rounded-lg bg-peach p-8 border-peachDark border-2">
         <h1 className="mb-2 text-lg font-semibold">
           Testing prompts
         </h1>
