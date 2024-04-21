@@ -9,19 +9,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
-import { getMutableAIState, useActions, useUIState } from "ai/rsc";
+import { useUIState } from "ai/rsc";
 import { AI } from "@/app/action";
-import BookingForm from "@/components/booking-form";
 
 type Props = {
   title: string;
@@ -68,13 +59,10 @@ const CardTitle = ({ text }: { text: string }) => {
 
 function Recommendations({ data, title }: Props) {
   const router = useRouter();
-  const [messages, setMessages] = useUIState<typeof AI>();
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div>
-      <p className="pb-2">{title}</p>
-      <div className="flex gap-5 flex-col">
+      <div className="flex gap-5 flex-col rounded-lg p-4 sm:p-5">
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
             <CardTitle text={recommendation?.summary}/>
@@ -83,7 +71,7 @@ function Recommendations({ data, title }: Props) {
                 {recommendation?.images.map(image => (
                   <CarouselItem key={image.url}>
                     <article className="w-full relative isolate rounded-xl flex flex-col">
-                      <img src={image?.url} className="w-full object-cover rounded-xl h:80 md:h-80"/>
+                      <img src={image?.url} className="h-96 w-full rounded-xl object-cover"/>
                       <div
                         className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/10 rounded-xl "></div>
                       <div className="absolute bottom-0 p-2 overflow-hidden text-sm leading-6 text-gray-300">
@@ -93,8 +81,8 @@ function Recommendations({ data, title }: Props) {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious/>
-              <CarouselNext/>
+              {recommendation.images.length && <CarouselPrevious/>}
+              {recommendation.images.length && <CarouselNext/>}
             </Carousel>
             <div>
               <p className="text-sm">
@@ -113,7 +101,7 @@ function Recommendations({ data, title }: Props) {
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
-                setDialogOpen(!dialogOpen);
+                router.push(`/booking?bn=${recommendation.businessName}&bu=${recommendation?.bookingUrl || ""}`);
               }}>
               <Button type="submit">
                 Bestill bord
@@ -122,12 +110,6 @@ function Recommendations({ data, title }: Props) {
           </div>
         ))}
       </div>
-
-      <Dialog open={dialogOpen} onOpenChange={() => setDialogOpen(false)} modal>
-        <DialogContent>
-          <BookingForm setDialogOpen={setDialogOpen}/>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

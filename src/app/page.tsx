@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Textarea from 'react-textarea-autosize';
 
 import { useUIState, useActions } from 'ai/rsc';
 import { UserMessage } from '@/components/llm-stocks/message';
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-
 import { type AI } from './action';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
-import Textarea from 'react-textarea-autosize';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import {
   Tooltip,
@@ -26,19 +24,6 @@ export default function Page() {
   const [inputValue, setInputValue] = useState('');
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-
-    script.src = "https://firebasestorage.googleapis.com/v0/b/notioncrm-27d2c.appspot.com/o/index-DjCPFb9d.js?alt=media&token=6a641c31-7fdf-4a13-99ab-b0927ca5f87a";
-    script.async = true;
-
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    }
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,7 +50,7 @@ export default function Page() {
   }, [inputRef]);
 
   return (
-    <div>
+    <div className="p-4">
       <div className="h-full">
         <div className="pt-4 mb-20">
           {messages.length ? (
@@ -91,14 +76,17 @@ export default function Page() {
               }}
             />
           )}
+
           <ChatScrollAnchor trackVisibility={false}/>
         </div>
       </div>
 
+      <div id="chat-list"/>
+
       <div
-        className="fixed inset-x-0 bottom-0 w-full bg-gradient-to-b from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+        className="fixed inset-x-0 bottom-0 w-full  from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
         <div className="mx-auto sm:max-w-2xl sm:px-4">
-          <div className="px-4 py-2 space-y-4 border-t shadow-lg bg-background sm:rounded-t-xl sm:border md:py-4">
+          <div className="px-4 py-2 space-y-4 border-t border-t-peachDark shadow-lg bg-peachLight md:py-4">
             <form
               ref={formRef}
               onSubmit={async (e: any) => {
@@ -136,7 +124,7 @@ export default function Page() {
               }}
             >
               <div
-                className="relative flex flex-col w-full px-8 overflow-hidden max-h-60 grow bg-background sm:rounded-md sm:border sm:px-12">
+                className="relative flex flex-col w-full px-10 overflow-hidden max-h-60 grow bg-peachLight sm:rounded-md sm:border sm:px-12">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -169,7 +157,7 @@ export default function Page() {
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
                 />
-                <div className="absolute right-0 top-4 sm:right-4">
+                <div className="absolute right-0 sm:right-4 md:right-4 lg:right-4 top-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

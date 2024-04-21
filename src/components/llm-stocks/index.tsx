@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { StockSkeleton } from './stock-skeleton';
 import { StocksSkeleton } from './stocks-skeleton';
 import { EventsSkeleton } from './events-skeleton';
 
