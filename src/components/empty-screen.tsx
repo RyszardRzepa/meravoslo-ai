@@ -16,8 +16,8 @@ const exampleMessages = [
     message: 'Hvor er beste indisk i Oslo?',
   },
   {
-    heading: 'Hvilke restauranter er ledig i kveld kl 18:00 med 4 personer?',
-    message: 'Hvilke restauranter er ledig i kveld kl 18:00 med 4 personer?',
+    heading: 'Hvilke restauranter er ledig i kveld kl 18:00 med 6 personer?',
+    message: 'Hvilke restauranter er ledig i kveld kl 18:00 med 6 personer?',
   },
 ];
 
