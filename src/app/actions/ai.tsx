@@ -55,6 +55,8 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
   // Search for relevant docs
   const context = await searchDocs(content);
 
+  const querySuggestionsPromise =  querySuggestor(content)
+
   aiState.update([...aiState.get(), {
     role: 'user', content,
   }]);
@@ -73,6 +75,10 @@ Respond in markdown format. Respond in the user's language. If unable to answer 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
+- Don't recommend the same places multiple times.
+- If you don't have a direct answer, suggest visiting a place website if you have it.
+- If the user ask about close place nearby, ask for the user location and after provide the information based on the location.
+- Respond with the links only if you have it and are 100% sure they are correct.
 
 Answer the question based only on the following context and chat history:
 Context: <context> ${context} </context>
@@ -88,6 +94,7 @@ Context: <context> ${context} </context>
         suggestions: z.array(z.string().describe('Suggestions for followup questions')),
         recommendations: z.array(z.object({
           docId: z.string().describe('The value of <doc_id>'),
+          restaurantId: z.string().describe('The value of <res_id>'),
           summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
         })),
       }),
@@ -114,7 +121,6 @@ Context: <context> ${context} </context>
         <MarkdownWithLink content={content}/>
     </BotMessage>);
     if (isFinal) {
-      console.log("isFinal", content)
       saveMessage({ message: content, role: Role.Assistant, uid, threadId })
       reply.done();
       aiState.done([...aiState.get(), { role: 'assistant', content }]);
@@ -128,25 +134,29 @@ Context: <context> ${context} </context>
 
     saveMessage({ message: JSON.stringify(recommendations), role: Role.Assistant, uid, threadId })
 
-    const select = "id, mapsUrl, address, images, bookingUrl, district, businessName"
+    const select = "id, images, restaurant(name, mapsUrl, address, bookingUrl, district, openingHours)"
     const { data } = await supabase.from('documents').select(select).in('id', recommendations.map((r: {
       docId: string;
     }) => r.docId));
 
     const recommendationData = recommendations.map((rec) => {
-      const docData = data?.find((doc: { id: number; mapsUrl: string }) => doc.id === Number(rec.docId));
+      const docData = data?.find((doc: { id: number; restaurant: any }) => doc.id === Number(rec.docId));
+      // @ts-ignore
+      const { restaurant } = docData;
+
       return {
         summary: rec?.summary,
-        address: docData?.address,
-        mapsUrl: docData?.mapsUrl,
+        address: restaurant?.address,
+        mapsUrl: restaurant?.mapsUrl,
         images: docData?.images,
-        bookingUrl: docData?.bookingUrl,
-        businessName: docData?.businessName,
-        district: docData?.district,
+        bookingUrl: restaurant?.bookingUrl,
+        businessName: restaurant?.name,
+        district: restaurant?.district,
+        openingHours: restaurant?.openingHours,
       };
     });
 
-    const querySuggestions = await querySuggestor(content)
+    const querySuggestions = await querySuggestionsPromise
 
     reply.done(
       <div className="flex flex-col gap-4">
@@ -164,9 +174,8 @@ Context: <context> ${context} </context>
       </div>
     );
 
-
     aiState.done([...aiState.get(), {
-      role: 'function', name: 'get_recommendations', content: JSON.stringify(recommendations),
+      role: 'function', name: 'get_recommendations', content: JSON.stringify(recommendationData),
     }]);
   });
 
