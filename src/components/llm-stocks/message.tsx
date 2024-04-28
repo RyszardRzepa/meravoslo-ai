@@ -1,7 +1,7 @@
 'use client';
 
 import { IconAI, IconArrowRight, IconUser } from '@/components/ui/icons';
-import { cn, scrollToTheChatEnd } from '@/lib/utils';
+import { cn, expandChat, scrollToTheChatEnd } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { useActions, useUIState } from "ai/rsc";
 import type { AI } from "@/app/actions/ai";
@@ -119,7 +119,7 @@ export function SuggestionCard({
                   responseMessage,
                 ]);
 
-                scrollToTheChatEnd();
+                expandChat();
               }}
             >
               <IconArrowRight className="mr-2 text-muted-foreground"/>

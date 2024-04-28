@@ -142,8 +142,20 @@ export const sleep = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));
 
 export const scrollToTheChatEnd = () => {
-  const chat = document.getElementById('chat');
+  const chat = document.getElementById('chat-list-end');
   if (chat) {
-    chat.scrollTop = chat.scrollHeight;
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth',
+    });
+  }
+}
+
+export const expandChat = () => {
+  const chatContainer = document.getElementById('chat-container');
+  if (chatContainer) {
+    scrollToTheChatEnd();
+    chatContainer.style.height = `${chatContainer.offsetHeight + 300}px`;
+    scrollToTheChatEnd();
   }
 }

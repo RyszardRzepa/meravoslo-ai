@@ -20,6 +20,7 @@ import { EmptyScreen } from '@/components/empty-screen';
 import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { saveMessage } from "@/app/actions/db";
 import { Role } from "@/lib/types";
+import { expandChat } from "@/lib/utils";
 
 const threadId = new Date().getTime();
 
@@ -30,6 +31,7 @@ export default function Page() {
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [uid, setUid] = useState<string | null>(null);
+  const divRef = useRef(null);
 
   useEffect(() => {
     const login = async () => {
@@ -71,9 +73,9 @@ export default function Page() {
   }, [inputRef]);
 
   return (
-    <div className="p-4">
+    <div ref={divRef} id="chat-container" className="p-4">
       <div className="h-full">
-        <div className="pt-4 mb-20">
+        <div className="pt-4">
           {messages.length ? (
             <ChatList messages={messages}/>
           ) : (
@@ -111,7 +113,7 @@ export default function Page() {
         </div>
       </div>
 
-      <div id="chat-list"/>
+      <div id="chat-list-end" />
 
       <div
         className="fixed inset-x-0 bottom-0 w-full  from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
@@ -150,15 +152,15 @@ export default function Page() {
                     content: value,
                   });
 
-                  console.log("responseMessage", responseMessage)
                   setMessages(currentMessages => [
                     ...currentMessages,
                     responseMessage,
                   ]);
 
                   // Navigate to the end of the chat
-                  const element = document.getElementById('chat-list');
-                  element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  expandChat();
+                  // const element = document.getElementById('chat-list');
+                  // element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (error) {
                   // You may want to show a toast or trigger an error state.
                   console.error(error);

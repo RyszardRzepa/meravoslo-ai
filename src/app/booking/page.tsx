@@ -89,7 +89,7 @@ const Footer = ({ canGoNext, setAlertOpen, onEmailSave, bookingId }: {
   }
 
   const onBookingComplete = async () => {
-    const responseMessage = await submitBookingState(restaurantName!);
+    const responseMessage = await   submitBookingState(restaurantName!);
     setMessages(currentMessages => [
       ...currentMessages,
       responseMessage,
