@@ -1,9 +1,6 @@
 'use client';
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { IconArrowElbow } from "@/components/ui/icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,9 +12,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useActions, useUIState } from "ai/rsc";
-import { AI } from "@/app/action";
+import { AI } from "@/app/actions/ai";
 import posthog from 'posthog-js'
-import { useRouter } from "next/navigation";
 
 posthog.init('phc_YknfD4axmqkiYBRZXA4hSUF2QGnkweodW4mCju8FTjl', { api_host: 'https://eu.posthog.com' })
 
@@ -39,7 +35,7 @@ const BookingForm = ({ setDialogOpen }: Props) => {
       behavior: 'smooth',
     });
 
-    const responseMessage = await submitBookingState();
+    const responseMessage = await submitBookingState("restaurant name");
 
     setMessages(currentMessages => [
       ...currentMessages,

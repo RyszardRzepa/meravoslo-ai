@@ -11,7 +11,7 @@ import {
   useStepper,
 } from "@/components/stepper";
 import { useActions, useUIState } from "ai/rsc";
-import { AI } from "@/app/action";
+import { AI } from "@/app/actions/ai";
 import {
   AlertDialog,
   AlertDialogAction,

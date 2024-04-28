@@ -8,6 +8,7 @@ type Document = {
   summary: string;
   tags: string[];
   menu: string;
+  restaurant: string;
 }
 
 export const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PRIVATE_KEY!);
@@ -21,7 +22,7 @@ export async function createEmbedding(text: string) {
   const {
     data: [{ embedding }],
   } = await openai.embeddings.create({
-    model: 'text-embedding-3-small', input: text, dimensions: 1536, // Generate an embedding with 1024 dimensions
+    model: 'text-embedding-3-small', input: text, dimensions: 1536, // Generate an embedding with 1536 dimensions
   });
   return embedding;
 }
@@ -29,11 +30,10 @@ export async function createEmbedding(text: string) {
 const combineDocumentsFn = (docs: Document[]) => {
   const serializedDocs = docs.map((doc) => {
     return `<content_start>
-                ${doc.title} 
-                about: ${doc.summary}. 
-                Tags: ${doc?.tags?.map(tag => `${tag},`)}. 
-                Menu: ${doc?.menu}. 
+                Title: ${doc.title} 
+                About: ${doc.summary}. 
                 <doc_id>${doc?.id}</doc_id>
+                <res_id>${doc?.restaurant}</res_id>
               </content_end>`;
   });
   return serializedDocs.join('\n\n');
