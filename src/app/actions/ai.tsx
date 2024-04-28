@@ -3,13 +3,17 @@ import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { BotCard, BotMessage, spinner} from '@/components/llm-stocks';
+import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
 
-import { runOpenAICompletion, sleep } from '@/lib/utils';
+import { runOpenAICompletion } from '@/lib/utils';
 import { z } from 'zod';
-import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
+import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
 import Recommendations from '@/components/recommendations';
 import { openai, searchDocs, supabase } from "@/lib/db";
+import { querySuggestor } from "@/lib/agents/querySuggestor";
+import { SuggestionCard } from "@/components/llm-stocks/message";
+import { saveMessage } from "@/app/actions/db";
+import { Role } from "@/lib/types";
 
 async function submitBookingState(restaurantName: string) {
   'use server';
@@ -17,7 +21,7 @@ async function submitBookingState(restaurantName: string) {
   const aiState = getMutableAIState<typeof AI>();
 
   aiState.update([...aiState.get(), {
-    role: 'system', content: 'Starting the booking process...', name: 'startBookingProcess',
+    role: 'system', content: 'Starting the booking process...',
   }]);
 
   const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
@@ -36,7 +40,13 @@ async function submitBookingState(restaurantName: string) {
   };
 }
 
-async function submitUserMessage(content: string) {
+type UserMessage = {
+  content: string;
+  uid: string;
+  threadId: number;
+};
+
+async function submitUserMessage({ content, uid, threadId }: UserMessage) {
   'use server';
 
   const aiState = getMutableAIState<typeof AI>();
@@ -45,7 +55,6 @@ async function submitUserMessage(content: string) {
   // Search for relevant docs
   const context = await searchDocs(content);
 
-  console.log("context", context.length)
   aiState.update([...aiState.get(), {
     role: 'user', content,
   }]);
@@ -59,14 +68,13 @@ async function submitUserMessage(content: string) {
       role: 'system',
       content: `\
 You are a knowledgeable Norwegian culture and travel assistant.
-Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead.
+Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context.
 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
-- Alwasy return 3 suggestions for followup questions.
 
-Answer the question based only on the following context:
+Answer the question based only on the following context and chat history:
 Context: <context> ${context} </context>
 `,
     }, ...aiState.get().map((info: any) => ({
@@ -103,11 +111,11 @@ Context: <context> ${context} </context>
     };
 
     reply.update(<BotMessage>
-      <div className="bg-peach p-4 rounded-md font-normal text-gray-900">
         <MarkdownWithLink content={content}/>
-      </div>
     </BotMessage>);
     if (isFinal) {
+      console.log("isFinal", content)
+      saveMessage({ message: content, role: Role.Assistant, uid, threadId })
       reply.done();
       aiState.done([...aiState.get(), { role: 'assistant', content }]);
     }
@@ -115,8 +123,10 @@ Context: <context> ${context} </context>
 
   completion.onFunctionCall('get_recommendations', async ({ recommendations, title, suggestions }) => {
     reply.update(<BotCard>
-      <StocksSkeleton />
+      <Skeleton />
     </BotCard>);
+
+    saveMessage({ message: JSON.stringify(recommendations), role: Role.Assistant, uid, threadId })
 
     const select = "id, mapsUrl, address, images, bookingUrl, district, businessName"
     const { data } = await supabase.from('documents').select(select).in('id', recommendations.map((r: {
@@ -136,9 +146,24 @@ Context: <context> ${context} </context>
       };
     });
 
-    reply.done(<BotCard>
-      <Recommendations title={title} data={recommendationData} />
-    </BotCard>);
+    const querySuggestions = await querySuggestor(content)
+
+    reply.done(
+      <div className="flex flex-col gap-4">
+        <BotCard>
+          <Recommendations title={title} data={recommendationData}/>
+        </BotCard>
+
+        {querySuggestions && (
+          <SuggestionCard
+            showAvatar={false}
+            suggestions={querySuggestions}
+            threadId={threadId}
+            uid={uid}
+          />)}
+      </div>
+    );
+
 
     aiState.done([...aiState.get(), {
       role: 'function', name: 'get_recommendations', content: JSON.stringify(recommendations),
@@ -156,7 +181,7 @@ const initialAIState: {
 }[] = [];
 
 const initialUIState: {
-  id: number; display: React.ReactNode;
+  id: number; display: React.ReactNode; message?: string;
 }[] = [];
 
 export const AI = createAI({

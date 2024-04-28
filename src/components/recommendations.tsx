@@ -11,8 +11,6 @@ import {
 } from '@/components/ui/carousel';
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
-import { useUIState } from "ai/rsc";
-import { AI } from "@/app/action";
 
 type Props = {
   title: string;
@@ -62,7 +60,7 @@ function Recommendations({ data, title }: Props) {
 
   return (
     <div>
-      <div className="flex gap-5 flex-col rounded-lg p-4 sm:p-5">
+      <div className="flex gap-5 flex-col rounded-lg">
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
             <CardTitle text={recommendation?.summary}/>

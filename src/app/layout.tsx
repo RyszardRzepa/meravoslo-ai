@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
-import { AI } from './action';
+import { AI } from './actions/ai';
 import { Providers } from '@/components/providers';
 
 export default function RootLayout({
