@@ -51,17 +51,17 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
 
   const aiState = getMutableAIState<typeof AI>();
 
-  // const ads = await getAds(content); // search in ads table
-  // Search for relevant docs
-  const context = await searchDocs(content);
-
-  const querySuggestionsPromise =  querySuggestor(content)
-
   aiState.update([...aiState.get(), {
     role: 'user', content,
   }]);
 
   const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
+
+  // const ads = await getAds(content); // search in ads table
+  // Search for relevant docs
+  const context = await searchDocs(content);
+
+  const querySuggestionsPromise =  querySuggestor(content)
 
   const completion = runOpenAICompletion(openai, {
     model: 'gpt-3.5-turbo-0125',
@@ -79,6 +79,8 @@ Guidelines:
 - If you don't have a direct answer, suggest visiting a place website if you have it.
 - If the user ask about close place nearby, ask for the user location and after provide the information based on the location.
 - Respond with the links only if you have it and are 100% sure they are correct.
+- If user ask for a price, reply with the price range if you have the information. If not, suggest visiting place website with the meny.
+- If user ask for recommendations now, provie the recommendations from the last 6 month.
 
 Answer the question based only on the following context and chat history:
 Context: <context> ${context} </context>

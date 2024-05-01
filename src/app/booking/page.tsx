@@ -25,8 +25,8 @@ import { Button } from "@/components/ui/button"
 import { saveBookingEmail, updateBooking } from "@/app/actions/db";
 
 const steps = [
-  { label: "Skriv epost" },
   { label: "Bestill bord" },
+  { label: "Bekreft bestilling" },
 ] satisfies StepItem[];
 
 const ConfirmBookingAlert = ({ open, setOpen }: { open: boolean, setOpen: (val: boolean) => void }) => {
@@ -41,11 +41,11 @@ const ConfirmBookingAlert = ({ open, setOpen }: { open: boolean, setOpen: (val: 
     <AlertDialog open={open} onOpenChange={() => setOpen(!open)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Er du ferdig med bordbestilling?</AlertDialogTitle>
+          <AlertDialogTitle>Gjennomførte du alle stegene og fikk bekreftelse fra restauranten på e-post eller sms?</AlertDialogTitle>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Lukk</AlertDialogCancel>
-          <AlertDialogAction onClick={onComplete}>Fullfør bordbestilling</AlertDialogAction>
+          <AlertDialogAction onClick={onComplete}>Ja</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -74,13 +74,13 @@ const Footer = ({ canGoNext, setAlertOpen, onEmailSave, bookingId }: {
   const restaurantName = useSearchParams().get("bn");
 
   const onClickNext = () => {
-    if (!canGoNext()) return
+    // if (!canGoNext()) return
+
+    // if (activeStep === 0) {
+    //   onEmailSave();
+    // }
 
     if (activeStep === 0) {
-      onEmailSave();
-    }
-
-    if (isLastStep) {
       setAlertOpen(true);
       return;
     }
@@ -126,18 +126,18 @@ const Footer = ({ canGoNext, setAlertOpen, onEmailSave, bookingId }: {
           </Button>
         ) : (
           <>
-            {activeStep > 0 && (
+            {activeStep === 0 && (
               <Button
-                disabled={isDisabledStep}
+                // disabled={isDisabledStep}
                 onClick={prevStep}
                 size="sm"
                 variant="secondary"
               >
-                Tilbake
+                Jeg venter med å booke
               </Button>
             )}
             <Button size="sm" onClick={onClickNext}>
-              {isLastStep ? "Fullfør bestilling" : isOptionalStep ? "Hopp inn" : "Neste"}
+              {isLastStep ? "Fullfør bestilling" : isOptionalStep ? "Hopp inn" : "Da har jeg booket"}
             </Button>
           </>
         )}
@@ -205,27 +205,28 @@ export default function BookingPage() {
           orientation="horizontal"
         >
           {steps.map((stepProps, index) => {
-            if (index === 0) {
-              return (
-                <Step key={stepProps.label} {...stepProps}>
-                  <div
-                    className="h-96  bg-peach flex items-center justify-center my-2 border border-peachDark text-primary rounded-md  p-4">
-                    <div className="flex flex-col w-full">
-                      <p className="text-sm pb-1">Skriv inn epost</p>
-                      <Input
-                        onChange={(e) => setEmail(e.target.value)}
-                        value={email}
-                        placeholder="eg. hei@selskap.no"
-                        className="bg-white"
-                      />
-                      {error && <p className="text-sm text-red-500 pt-1">{error}</p>}
-                    </div>
-                  </div>
-                </Step>
-              );
-            }
 
-            if (index === 1) {
+            // if (index === 0) {
+            //   return (
+            //     <Step key={stepProps.label} {...stepProps}>
+            //       <div
+            //         className="h-96  bg-peach flex items-center justify-center my-2 border border-peachDark text-primary rounded-md  p-4">
+            //         <div className="flex flex-col w-full">
+            //           <p className="text-sm pb-1">Skriv inn epost</p>
+            //           <Input
+            //             onChange={(e) => setEmail(e.target.value)}
+            //             value={email}
+            //             placeholder="eg. hei@selskap.no"
+            //             className="bg-white"
+            //           />
+            //           {error && <p className="text-sm text-red-500 pt-1">{error}</p>}
+            //         </div>
+            //       </div>
+            //     </Step>
+            //   );
+            // }
+
+            if (index === 0) {
               return (
                 <Step key={stepProps.label} {...stepProps}>
                   <div
@@ -239,7 +240,7 @@ export default function BookingPage() {
               );
             }
 
-            if (index === 2) {
+            if (index === 1) {
               return (
                 <Step key={stepProps.label} {...stepProps}>
                   <div
