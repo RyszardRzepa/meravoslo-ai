@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export async function querySuggestor(question: string): Promise<string[] | null>{
+export async function querySuggester(question: string): Promise<string[] | null>{
   try {
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
