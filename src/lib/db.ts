@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import OpenAI, { OpenAI as OpenAIEmbeddings } from "openai";
 import { pgTable, serial, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
-import { InferSelectModel, InferInsertModel } from 'drizzle-orm'
 import { sql as sqlPG } from '@vercel/postgres'
 import { drizzle } from 'drizzle-orm/vercel-postgres'
 import { sql } from 'drizzle-orm';
@@ -34,12 +33,12 @@ export async function createEmbedding(text: string) {
 
 const combineDocumentsFn = (docs: Document[]) => {
   const serializedDocs = docs.map((doc) => {
-    return `<content_start>
+    return `<restaurant>
                 Title: ${doc.title} 
                 About: ${doc.summary}. 
                 <doc_id>${doc?.id}</doc_id>
                 <res_id>${doc?.restaurant}</res_id>
-              </content_end>`;
+              </<restaurant>`;
   });
   return serializedDocs.join('\n\n');
 };
@@ -48,10 +47,21 @@ export async function searchDocs(message: string) {
   const embedding = await createEmbedding(message);
 
   const { error: matchError, data } = await supabase.rpc('match_documents_no_metadata', {
-    query_embedding: embedding, match_threshold: 0.1, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.3, match_count: 3,
   });
 
-  return combineDocumentsFn(data);
+  console.log("data", data)
+  // filter out the documents that have the same restaurant id
+  const restaurantIds = new Set();
+  const filteredData = data.filter((doc: Document) => {
+    if (restaurantIds.has(doc.restaurant)) {
+      return false;
+    }
+    restaurantIds.add(doc.restaurant);
+    return true;
+  });
+
+  return combineDocumentsFn(filteredData);
 }
 
 type SearchRestaurantParams = {

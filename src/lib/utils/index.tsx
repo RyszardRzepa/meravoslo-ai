@@ -132,12 +132,6 @@ export const formatNumber = (value: number) =>
     currency: 'USD',
   }).format(value);
 
-export const runAsyncFnWithoutBlocking = (
-  fn: (...args: any) => Promise<any>,
-) => {
-  fn();
-};
-
 export const sleep = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms));
 
@@ -158,4 +152,10 @@ export const expandChat = () => {
     chatContainer.style.height = `${chatContainer.offsetHeight + 300}px`;
     scrollToTheChatEnd();
   }
+}
+
+export const runAsyncFnWithoutBlocking = (
+  fn: (...args: any) => Promise<any>
+) => {
+  fn()
 }
