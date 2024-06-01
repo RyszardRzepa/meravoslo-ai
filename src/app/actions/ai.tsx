@@ -2,7 +2,7 @@ import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
 
-import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
+import { runAsyncFnWithoutBlocking } from '@/lib/utils';
 import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
 import { searchDocs, searchRestaurants, supabase } from "@/lib/db";
 import { getFilterParams } from "@/lib/agents/getFilterParams";

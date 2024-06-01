@@ -31,7 +31,7 @@ export const handleDefaultResponse = async ({ aiState,reply, context, userQuesti
   const querySuggesterPromise = querySuggester(query)
   const prompt = `\
 You are a knowledgeable Norwegian culture, food and travel assistant.
-Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context.
+Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
@@ -43,7 +43,6 @@ Guidelines:
 - If the user ask about close place nearby, ask for the user location and after provide the information based on the location.
 - Respond with the links only if you they are provided in the context.
 - If user ask for a price, reply with the price range if you have the information. If not, suggest visiting place website with the meny.
-
 Answer the question based only on the following context and user question:
 Context: <context> ${context} </context>
 User Question: <userQuestion> ${userQuestion} </userQuestion>
@@ -151,6 +150,7 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
   }
 
 
+
 type FilterSearchResponse = {
   aiState: any;
   reply: any;
@@ -172,9 +172,25 @@ export const handleFilterSearchResponse = async ({ aiState, reply, filterParams,
   //Run the query suggester only if the filter params are found
   const [querySuggestions, recommendationsResponse] = await Promise.all([querySuggester(userQuestion), recommendationCreator(context, userQuestion, aiState)])
 
-  const recommendationData = recommendationsResponse?.recommendations.map((rec) => {
+  const recommendationData: {
+    summary: string,
+    images: [{ url: string, caption: string }],
+    address: string,
+    mapsUrl: string,
+    bookingUrl: string,
+    name: string,
+    district: string,
+  }[] = recommendationsResponse?.recommendations.map((rec) => {
+    const restaurant = restaurants.find((r: any) => r.id === Number(rec.restaurantId));
+
     return {
-      summary: rec.summary
+      summary: rec.summary,
+      address: rec.restaurant?.address,
+      mapsUrl: rec.restaurant.mapsUrl,
+      images: rec.images,
+      bookingUrl: rec.restaurant.bookingUrl,
+      name: rec.restaurant.name,
+      district: rec.restaurant.district,
     };
   });
 

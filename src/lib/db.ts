@@ -50,7 +50,6 @@ export async function searchDocs(message: string) {
     query_embedding: embedding, match_threshold: 0.3, match_count: 3,
   });
 
-  console.log("data", data)
   // filter out the documents that have the same restaurant id
   const restaurantIds = new Set();
   const filteredData = data.filter((doc: Document) => {

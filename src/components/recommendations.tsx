@@ -20,7 +20,7 @@ type Props = {
     address: string,
     mapsUrl: string,
     bookingUrl: string,
-    businessName: string,
+    name: string,
     district: string,
   }[];
 }
@@ -84,7 +84,7 @@ function Recommendations({ data, title }: Props) {
             </Carousel>
             <div>
               <p className="text-sm">
-                {recommendation?.businessName}, {" "}
+                {recommendation?.name}, {" "}
                 <span>
                   {recommendation?.mapsUrl && (<Link
                     target="_blank"
