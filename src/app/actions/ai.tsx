@@ -4,9 +4,7 @@ import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
 
 import { runAsyncFnWithoutBlocking } from '@/lib/utils';
 import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
-import { searchDocs, searchRestaurants, supabase } from "@/lib/db";
-import { getFilterParams } from "@/lib/agents/getFilterParams";
-import { handleDefaultResponse, handleFilterSearchResponse } from "@/app/actions/lib";
+import { handleDefaultResponse } from "@/app/actions/lib";
 
 async function submitBookingState(restaurantName: string) {
   'use server';
@@ -45,7 +43,7 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
   const aiState = getMutableAIState<typeof AI>();
 
   aiState.update([...aiState.get(), {
-    role: 'user', content,
+    role: 'user', content, name: 'submitUserMessage',
   }]);
 
   const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
@@ -55,26 +53,15 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
       {spinner}
     </BotCard>);
 
-    const [context, filterParams] = await Promise.all([searchDocs(content), getFilterParams(content)]);
-
     reply.update(
       <BotCard>
         <Skeleton/>
       </BotCard>
     );
 
-    console.log("filterParams", filterParams)
-    // filter params exist. Perform exact search
-    if (typeof filterParams === "object" && Object.keys(filterParams).length > 0) {
-      handleFilterSearchResponse({
-        aiState, reply, filterParams, userQuestion: content, context, uid, threadId
-      });
-    } else {
-      // perform vector search
-      handleDefaultResponse({
-        aiState, reply, context, userQuestion: content, query: content, uid, threadId
-      });
-    }
+    handleDefaultResponse({
+      aiState, reply, userQuestion: content, query: content, uid, threadId
+    });
   });
 
   return {

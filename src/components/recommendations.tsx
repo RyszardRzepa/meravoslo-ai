@@ -22,6 +22,7 @@ type Props = {
     bookingUrl: string,
     name: string,
     district: string,
+    openingHours: string
   }[];
 }
 
@@ -99,7 +100,7 @@ function Recommendations({ data, title }: Props) {
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
-                router.push(`/booking?bn=${recommendation?.businessName}&bu=${recommendation?.bookingUrl || ""}`);
+                router.push(`/booking?bn=${recommendation?.name}&bu=${recommendation?.bookingUrl || ""}`);
               }}>
               <Button type="submit">
                 Bestill bord

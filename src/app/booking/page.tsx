@@ -128,8 +128,7 @@ const Footer = ({ canGoNext, setAlertOpen, onEmailSave, bookingId }: {
           <>
             {activeStep === 0 && (
               <Button
-                // disabled={isDisabledStep}
-                onClick={prevStep}
+                onClick={router.back}
                 size="sm"
                 variant="secondary"
               >
@@ -245,7 +244,7 @@ export default function BookingPage() {
                 <Step key={stepProps.label} {...stepProps}>
                   <div
                     className="h-96 flex items-center justify-center my-2 border bg-peach text-primary rounded-md">
-                    Done!
+                    Done! Here
                   </div>
                 </Step>
               );

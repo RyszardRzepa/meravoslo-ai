@@ -104,7 +104,6 @@ function prepareFetchDocumentsSimilarParams(params: SearchRestaurantParams) {
 }
 export async function searchRestaurants(params: SearchRestaurantParams) {
   const db = drizzle(sqlPG)
-  const allUsers = await db.select().from(bookings);
   const preparedParams = prepareFetchDocumentsSimilarParams(params);
 
   const result = await db.execute(sql`SELECT * FROM fetch_documents_similar(

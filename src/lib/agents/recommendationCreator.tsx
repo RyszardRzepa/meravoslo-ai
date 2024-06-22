@@ -16,85 +16,39 @@ const retriever = traceable(
 );
 
 export const recommendationCreator = traceable(async function rag(context: string, userQuestion: string, aiState: any) {
-  await retriever(userQuestion);
+  // await retriever(userQuestion);
 
-  try {
-    const prompt = `
-      Please return recommendations based on the context and chat history. Call \\get_recommendations\\ function.
-  
-      Guidelines:
-      Answer the question based only on the following context and user question:
-      Context: <context> ${context} </context>.
-      User Question: <userQuestion> ${userQuestion} </userQuestion>.
-    `;
-
-    const messages = [
+  const completion = await openai.chat.completions.create({
+    messages: [
       {
         role: "system",
-        content: `You are a knowledgeable Norwegian culture, food, restaurant, travel assistant.`
+        content: "You are a helpful assistant designed to output JSON.",
       },
       {
-        role: "user",
-        content: prompt,
-      }, ...aiState.get().map((info: any) => ({
-        role: info.role, content: info.content, name: info.name
-      }))];
-
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "get_recommendations",
-          description: `Create up to three recommendations based on the context number of <restaurant>. So if there is only one <restaurant> in the context, return only one recommendation, etc.`,
-          parameters: {
-            type: "object",
-            properties: {
-              title: {
-                type: "string",
-                description: `A title for the recommendations in the users language. The title is about introducing the recommendations.  Use tone of voice from the provided <context>. If we don't have information in <context> about specific details user ask, please mention this in the response `,
-              },
-              recommendations: {
-                type: "array",
-                description: `List of three recommendations.`,
-                items: {
-                  type: "object",
-                  properties: {
-                    summary: {
-                      type: "string",
-                      description: `Short summary of the recommendation, write two sentences. Use tone of voice from the provided <context>. Explain why this is a good recommendation for user question.`,
-                    },
-                    id: {
-                      type: "string",
-                      description: `The value of <doc_id>.`,
-                    },
-                  },
-                },
-              },
-            },
-            required: ["get_recommendations"],
-          },
-        },
+        role: "user", content: `
+      Please return recommendations based on the context and chat history.
+      Return json format [{ 
+      title: "A title for the recommendations in the users language. The title is about introducing the recommendations.  Use tone of voice from the provided <context>. If we don't have information in <context> about specific details user ask, please mention this in the response",
+      recommendations: [{ summary: "Short summary of the recommendation, write two sentences. Use tone of voice from the provided <context>. Explain why this is a good recommendation for user question", id: "The value of <doc_id>" }] }]. 
+  
+      recommendations include all the restaurants in the context.
+      Guidelines:
+      Create up to three recommendations based on the context number of <restaurant>. So if there is only one <restaurant> in the context, return only one recommendation, etc.
+      Context: <context> ${context} </context>.
+      User Question: <userQuestion> ${userQuestion} </userQuestion>.
+      `
       },
-    ];
+    ],
+    model: "gpt-3.5-turbo-0125",
+    response_format: { type: "json_object" },
+  });
 
-    // @ts-ignore
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages,
-      tools: tools,
-      temperature: 0.5,
-      max_tokens: 4000,
-      tool_choice: "auto", // auto is default, but we'll be explicit
-    });
-    const responseMessage = response.choices[0].message;
-
-    // console.log("responseMessage", responseMessage)
-    if (responseMessage.tool_calls) {
-      return JSON.parse(responseMessage?.tool_calls?.[0]?.function?.arguments)
+  try {
+    if (completion.choices[0].message.content) {
+      return JSON.parse(completion.choices[0].message.content);
     }
     return null;
-  } catch
-    (error) {
-    throw error;
+  } catch (e) {
+    console.error("Error parsing JSON", e);
   }
 });

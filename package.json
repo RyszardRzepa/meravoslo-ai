@@ -29,6 +29,7 @@
     "@vercel/postgres": "^0.8.0",
     "ai": "^3.0.22",
     "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "csv-parser": "^3.0.0",

@@ -1,6 +1,6 @@
 import { querySuggester } from "@/lib/agents/querySuggester";
 import { runOpenAICompletion } from "@/lib/utils";
-import { openai, searchRestaurants, supabase } from "@/lib/db";
+import { openai, searchDocs, searchRestaurants, supabase } from "@/lib/db";
 import { z } from "zod";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -13,6 +13,7 @@ import { OpenAI } from "openai";
 
 // https://docs.smith.langchain.com/tutorials/observability
 import { wrapOpenAI } from "langsmith/wrappers";
+import { getFilterParams } from "@/lib/agents/getFilterParams";
 const client = wrapOpenAI(new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }));
@@ -20,21 +21,33 @@ const client = wrapOpenAI(new OpenAI({
 type DefaultResponse = {
   aiState: any;
   reply: any;
-  context: string;
   userQuestion: string;
   query: string;
   uid: string;
   threadId: number;
 }
 
-export const handleDefaultResponse = async ({ aiState,reply, context, userQuestion, query, uid, threadId }: DefaultResponse) => {
+export const handleDefaultResponse = async ({
+                                              aiState,
+                                              reply,
+                                              userQuestion,
+                                              query,
+                                              uid,
+                                              threadId
+                                            }: DefaultResponse) => {
   const querySuggesterPromise = querySuggester(query)
+  const [context, filterParams] = await Promise.all([searchDocs(userQuestion), getFilterParams(userQuestion)]);
+
+  console.log("filterParams", filterParams)
+
   const prompt = `\
 You are a knowledgeable Norwegian culture, food and travel assistant.
 Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
+- If the <filterParams> object is not empty, call \`get_exact_recommendations\`. Don't call  \`get_recommendations\`.
+- If user ask follow-up questions related to previous recommendations, don't call \`get_recommendations\` or \`get_exact_recommendations\`. Answer question based on the context. 
 - If user ask a question that is not releated to Norwegian culture, food and travel assistant, reply accordingly using tone of voice from the provided <context>.
 - Always response only with the information that reply to <userQuestion>, nothing else.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
@@ -45,6 +58,7 @@ Guidelines:
 - If user ask for a price, reply with the price range if you have the information. If not, suggest visiting place website with the meny.
 Answer the question based only on the following context and user question:
 Context: <context> ${context} </context>
+Filter Params: <filterParams> ${JSON.stringify(filterParams)} </filterParams>
 User Question: <userQuestion> ${userQuestion} </userQuestion>
 `;
 
@@ -57,7 +71,8 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
     }, ...aiState.get().map((info: any) => ({
       role: info.role, content: info.content, name: info.name,
     }))],
-    functions: [{
+    functions: [
+      {
       name: 'get_recommendations',
       description: 'Create max three recommendations based on the <context> number of <restaurant>. So if there is' +
         ' only one <restaurant> in the context, return only one recommendation, etc.',
@@ -70,10 +85,19 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
           summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
         })),
       }),
-    }], temperature: 0,
+      },
+      {
+        name: 'get_exact_recommendations',
+        description: 'Return only number "1"',
+        parameters: z.object({
+          done: z.string().describe('number "1"'),
+        }),
+      }
+    ], temperature: 0,
   });
 
   completion.onTextContent((content: string, isFinal: boolean) => {
+    console.log("onTextContent")
     const MarkdownWithLink = ({ content }: { content: string }) => {
       return <Markdown
         remarkPlugins={[remarkGfm]}
@@ -103,6 +127,7 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
         <Skeleton/>
       </BotCard>);
 
+    console.log("get_recommendations")
     const select = "id, images, restaurant(name, mapsUrl, address, bookingUrl, district, openingHours)"
     const { data } = await supabase.from('documents').select(select).in('id', recommendations.map((r: {
       docId: string;
@@ -115,17 +140,17 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
 
       return {
         summary: rec?.summary,
+        images: docData?.images,
         address: restaurant?.address,
         mapsUrl: restaurant?.mapsUrl,
-        images: docData?.images,
         bookingUrl: restaurant?.bookingUrl,
-        businessName: restaurant?.name,
+        name: restaurant?.name,
         district: restaurant?.district,
         openingHours: restaurant?.openingHours,
       };
     });
 
-    const querySuggestions = await querySuggesterPromise
+    // const querySuggestions = await querySuggesterPromise
 
     reply.done(
       <div className="flex flex-col gap-4">
@@ -133,23 +158,31 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
         <Recommendations title={title} data={recommendationData}/>
     </BotCard>
 
-    {querySuggestions && (
-      <SuggestionCard
-        showAvatar={false}
-      suggestions={querySuggestions}
-      threadId={threadId}
-      uid={uid}
-      />)}
+        {/*{querySuggestions && (*/}
+        {/*  <SuggestionCard*/}
+        {/*    showAvatar={false}*/}
+        {/*  suggestions={querySuggestions}*/}
+        {/*  threadId={threadId}*/}
+        {/*  uid={uid}*/}
+        {/*  />)}*/}
       </div>
     );
-
       aiState.done([...aiState.get(), {
         role: 'function', name: 'get_recommendations', content: JSON.stringify(recommendationData),
       }]);
     });
+
+  completion.onFunctionCall('get_exact_recommendations', async () => {
+    reply.update(<BotCard>
+      <Skeleton/>
+    </BotCard>);
+
+    console.log("exact recommendations")
+    exactRecommendations({
+      aiState, reply, filterParams, userQuestion, context, uid, threadId
+    });
+  });
   }
-
-
 
 type FilterSearchResponse = {
   aiState: any;
@@ -160,37 +193,48 @@ type FilterSearchResponse = {
   uid: string;
   threadId: number;
 }
-export const handleFilterSearchResponse = async ({ aiState, reply, filterParams, userQuestion, context, uid, threadId }: FilterSearchResponse) => {
-  // search for restaurants based on the filter params.
+export const exactRecommendations = async ({
+                                             aiState,
+                                             reply,
+                                             filterParams,
+                                             userQuestion,
+                                             context,
+                                             uid,
+                                             threadId
+                                           }: FilterSearchResponse) => {
   // // Search for restaurants based on the filter params. Do not call this if no filter params are found
   const restaurants = await searchRestaurants(filterParams);
 
-  restaurants.map((restaurant: any) => {
-    return `<restaurant>Restaurant: ${ restaurant.businessname}. About: ${restaurant.title}. <doc_id>${restaurant.id}</doc_id></restaurant>.\n`
+  // filter out the documents that have the same restaurant id
+  const restaurantIds = new Set();
+  const filteredData = restaurants.filter((doc: any) => {
+    if (restaurantIds.has(doc.name)) {
+      return false;
+    }
+    restaurantIds.add(doc.name);
+    return true;
+  });
+
+  context = [...filteredData].map((restaurant: any) => {
+    return `<restaurant>Restaurant: ${restaurant.name}. About: ${restaurant.title}. <doc_id>${restaurant.id}</doc_id></restaurant>.\n`
   }).join(", ")
 
   //Run the query suggester only if the filter params are found
-  const [querySuggestions, recommendationsResponse] = await Promise.all([querySuggester(userQuestion), recommendationCreator(context, userQuestion, aiState)])
+  // const [querySuggestions, recommendationsResponse] = await Promise.all([querySuggester(userQuestion), recommendationCreator(context, userQuestion, aiState)])
+  const [recommendationsResponse] = await Promise.all([recommendationCreator(context, userQuestion, aiState)])
 
-  const recommendationData: {
-    summary: string,
-    images: [{ url: string, caption: string }],
-    address: string,
-    mapsUrl: string,
-    bookingUrl: string,
-    name: string,
-    district: string,
-  }[] = recommendationsResponse?.recommendations.map((rec) => {
-    const restaurant = restaurants.find((r: any) => r.id === Number(rec.restaurantId));
+  const recommendationData = recommendationsResponse?.recommendations.map((aiRec: { id: any; summary: any; }) => {
+    const restaurant = restaurants.find((r: any) => r.id === aiRec.id);
 
     return {
-      summary: rec.summary,
-      address: rec.restaurant?.address,
-      mapsUrl: rec.restaurant.mapsUrl,
-      images: rec.images,
-      bookingUrl: rec.restaurant.bookingUrl,
-      name: rec.restaurant.name,
-      district: rec.restaurant.district,
+      summary: aiRec?.summary,
+      address: restaurant?.address,
+      mapsUrl: restaurant?.mapsUrl,
+      images: restaurant?.images,
+      bookingUrl: restaurant?.bookingUrl,
+      name: restaurant?.name,
+      district: restaurant?.district,
+      openingHours: restaurant?.openingHours,
     };
   });
 
@@ -200,15 +244,19 @@ export const handleFilterSearchResponse = async ({ aiState, reply, filterParams,
         <Recommendations title={recommendationsResponse?.title} data={recommendationData}/>
       </BotCard>
 
-      {querySuggestions && (
-        <SuggestionCard
-          showAvatar={false}
-          suggestions={querySuggestions}
-          threadId={threadId}
-          uid={uid}
-        />)}
+      {/*{querySuggestions && (*/}
+      {/*  <SuggestionCard*/}
+      {/*    showAvatar={false}*/}
+      {/*    suggestions={querySuggestions}*/}
+      {/*    threadId={threadId}*/}
+      {/*    uid={uid}*/}
+      {/*  />)}*/}
     </div>
   );
 
-  aiState.done([...aiState.get(), { role: 'function', name: 'get_recommendations', content: `assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}` }]);
+  aiState.done([...aiState.get(), {
+    role: 'function',
+    name: 'get_exact_recommendations',
+    content: `assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
+  }]);
 }

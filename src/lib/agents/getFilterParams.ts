@@ -5,13 +5,13 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_VERTEX_KEY!);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash-latest",
+  model: "gemini-1.5-flash",
 });
 
 const generationConfig = {
-  temperature: 0.1,
-  topP: 0.95,
-  topK: 64,
+  temperature: 0.7,
+  topP: 0.4,
+  topK: 32,
   maxOutputTokens: 1000,
   responseMimeType: "text/plain",
 };
@@ -53,7 +53,7 @@ Response: { "romanticScale":  “Romantic”, "hasVegan": true }
   {
   district: {
     type: "string",
-    description: "The city district where the restaurant is located. “If user say downtown, return “Centrum”,
+    description: "Include this if user is asking for a city district only, if user mention only city name, don't include this. “If user say downtown, return “Centrum”.,
   },
   romanticScale: {
     type: "string",
@@ -73,10 +73,35 @@ Response: { "romanticScale":  “Romantic”, "hasVegan": true }
   },
   foodType: {
     type: "string",
-    description: "The type of food served at the restaurant. Possible values: ['Italian', 'French', 'Asian', 'American', 'Mediterranean', 'Nordic', 'Other']",
- category: {
-\ttype: “string”,
-Description: “The category of the place. Select only one of the possible values: ['Pub og restaurant', 'Restaurant', 'Vinbar og restaurant', 'Kafé’]. If user ask for a romantic place, select “Restaurant”, if user ask for food recommendation or dinning out also select “Restaurant”. If user ask for a bar return "Pub og restaurant".
+    description: "The type of food served at the restaurant. Possible values: [
+    'Italian', 
+    'French', 
+    'Asian', 
+    'Indian', 
+    'Chinese', 
+    'American', 
+    'Mediterranean', 
+    'Nordic', 
+    'Other', 
+    'Mexican', 
+    'Japanese', 
+    'Korean', 
+    'Thai', 
+    'Spanish', 
+    'Middle Eastern', 
+    'African', 
+    'Caribbean', 
+    'Greek', 
+    'Turkish', 
+    'Vietnamese', 
+    'Lebanese', 
+    'Brazilian', 
+    'Peruvian', 
+    'Ethiopian'
+]"},
+ placeCategory: {
+	type: “string”,
+Description: “The category of the place. Select only one of the possible values: ['Pub/Bar og restaurant', 'Restaurant', 'Vinbar og restaurant', 'Kafé’]. If user ask for a romantic place, select “Restaurant”, if user ask for food recommendation or dinning out also select “Restaurant”.
  },
 “day”: {
 type: “string”,
@@ -87,7 +112,8 @@ Description: ”The day and of the week. Example “Manday”
 
 <user_query>
 ${question}
-<user_query>`
+<user_query>
+`
 
   const chatSession = model.startChat({
     generationConfig,
