@@ -3,16 +3,14 @@
 import { supabase } from "@/lib/db";
 import { Role } from "@/lib/types";
 import { supabaseBackend } from "@/lib/supabase/backend";
-import { supabaseFrontent } from "@/lib/supabase/frontend";
 
-export async function saveBookingEmail({ email, bookingUrl, businessName }: {
-  email: string;
+export async function saveBooking({ bookingUrl, businessName }: {
   bookingUrl: string;
   businessName: string
 }): Promise<number> {
 
   const { data, error } = await supabase.from('bookings').insert(
-    { email, bookingUrl, businessName },
+    { bookingUrl, businessName },
   ).select()
 
   if (error) {
