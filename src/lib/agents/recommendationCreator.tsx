@@ -22,7 +22,7 @@ export const recommendationCreator = traceable(async function rag(context: strin
     messages: [
       {
         role: "system",
-        content: "You are a helpful assistant designed to output JSON.",
+        content: "You are a helpful assistant designed to output JSON. Always return recommendations in the users language",
       },
       {
         role: "user", content: `
@@ -39,7 +39,7 @@ export const recommendationCreator = traceable(async function rag(context: strin
       `
       },
     ],
-    model: "gpt-3.5-turbo-0125",
+    model: "gpt-4o",
     response_format: { type: "json_object" },
   });
 

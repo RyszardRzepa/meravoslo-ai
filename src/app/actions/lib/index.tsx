@@ -1,6 +1,6 @@
 import { querySuggester } from "@/lib/agents/querySuggester";
 import { runOpenAICompletion } from "@/lib/utils";
-import { openai, searchDocs, searchRestaurants, supabase } from "@/lib/db";
+import { searchDocs, searchRestaurants, supabase } from "@/lib/db";
 import { z } from "zod";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,19 +35,24 @@ export const handleDefaultResponse = async ({
                                               uid,
                                               threadId
                                             }: DefaultResponse) => {
-  const querySuggesterPromise = querySuggester(query)
   const [context, filterParams] = await Promise.all([searchDocs(userQuestion), getFilterParams(userQuestion)]);
 
   console.log("filterParams", filterParams)
+
+  // "get_recommendations" function is called when user ask first or followup question where we could not extract filter
+  // params. This function will use vector search results to create the recommendations.
+
+  // "get_exact_recommendations" function is called when user ask first or followup question where we could extract filter
+  // params. This function will use the filter params to create the recommendations.
 
   const prompt = `\
 You are a knowledgeable Norwegian culture, food and travel assistant.
 Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
 
 Guidelines:
-- If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
-- If the <filterParams> object is not empty, call \`get_exact_recommendations\`. Don't call  \`get_recommendations\`.
-- If user ask follow-up questions related to previous recommendations, don't call \`get_recommendations\` or \`get_exact_recommendations\`. Answer question based on the context. 
+- If the user ask followup question for recommendations to eat food and if the <filterParams> object is empty, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc. If user ask for activities to do in the same query, reply that you can only provide recommendations for food.
+- If the <filterParams> object is not empty, call \`get_exact_recommendations\`. Don't call  \`get_recommendations\`. If user ask for activities to do in the same query, reply that you can only provide recommendations for food.
+- If user ask follow-up questions related to previous recommendations, don't call \`get_recommendations\` or \`get_exact_recommendations\`. Answer question based on the chat history. 
 - If user ask a question that is not releated to Norwegian culture, food and travel assistant, reply accordingly using tone of voice from the provided <context>.
 - Always response only with the information that reply to <userQuestion>, nothing else.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
@@ -60,6 +65,7 @@ Answer the question based only on the following context and user question:
 Context: <context> ${context} </context>
 Filter Params: <filterParams> ${JSON.stringify(filterParams)} </filterParams>
 User Question: <userQuestion> ${userQuestion} </userQuestion>
+Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
 `;
 
   const completion = runOpenAICompletion(client, {
@@ -97,7 +103,6 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
   });
 
   completion.onTextContent((content: string, isFinal: boolean) => {
-    console.log("onTextContent")
     const MarkdownWithLink = ({ content }: { content: string }) => {
       return <Markdown
         remarkPlugins={[remarkGfm]}
@@ -127,16 +132,16 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
         <Skeleton/>
       </BotCard>);
 
-    console.log("get_recommendations")
+    console.log("🎯get_recommendations")
     const select = "id, images, restaurant(name, mapsUrl, address, bookingUrl, district, openingHours)"
-    const { data } = await supabase.from('documents').select(select).in('id', recommendations.map((r: {
+    const { data, error } = await supabase.from('documents').select(select).in('id', recommendations.map((r: {
       docId: string;
-    }) => r.docId));
+    }) => Number(r.docId)));
 
     const recommendationData = recommendations.map((rec) => {
       const docData = data?.find((doc: { id: number; restaurant: any }) => doc.id === Number(rec.docId));
-      // @ts-ignore
-      const { restaurant } = docData;
+
+      const { restaurant } = docData || {} as any;
 
       return {
         summary: rec?.summary,
@@ -147,24 +152,14 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
         name: restaurant?.name,
         district: restaurant?.district,
         openingHours: restaurant?.openingHours,
-      };
+      }
     });
-
-    // const querySuggestions = await querySuggesterPromise
 
     reply.done(
       <div className="flex flex-col gap-4">
       <BotCard>
         <Recommendations title={title} data={recommendationData}/>
     </BotCard>
-
-        {/*{querySuggestions && (*/}
-        {/*  <SuggestionCard*/}
-        {/*    showAvatar={false}*/}
-        {/*  suggestions={querySuggestions}*/}
-        {/*  threadId={threadId}*/}
-        {/*  uid={uid}*/}
-        {/*  />)}*/}
       </div>
     );
       aiState.done([...aiState.get(), {
@@ -177,7 +172,7 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
       <Skeleton/>
     </BotCard>);
 
-    console.log("exact recommendations")
+    console.log("💯 exact recommendations")
     exactRecommendations({
       aiState, reply, filterParams, userQuestion, context, uid, threadId
     });
@@ -220,7 +215,6 @@ export const exactRecommendations = async ({
   }).join(", ")
 
   //Run the query suggester only if the filter params are found
-  // const [querySuggestions, recommendationsResponse] = await Promise.all([querySuggester(userQuestion), recommendationCreator(context, userQuestion, aiState)])
   const [recommendationsResponse] = await Promise.all([recommendationCreator(context, userQuestion, aiState)])
 
   const recommendationData = recommendationsResponse?.recommendations.map((aiRec: { id: any; summary: any; }) => {
@@ -243,14 +237,6 @@ export const exactRecommendations = async ({
       <BotCard>
         <Recommendations title={recommendationsResponse?.title} data={recommendationData}/>
       </BotCard>
-
-      {/*{querySuggestions && (*/}
-      {/*  <SuggestionCard*/}
-      {/*    showAvatar={false}*/}
-      {/*    suggestions={querySuggestions}*/}
-      {/*    threadId={threadId}*/}
-      {/*    uid={uid}*/}
-      {/*  />)}*/}
     </div>
   );
 
