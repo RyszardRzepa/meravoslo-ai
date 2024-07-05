@@ -20,8 +20,9 @@ type Props = {
     address: string,
     mapsUrl: string,
     bookingUrl: string,
-    businessName: string,
+    name: string,
     district: string,
+    openingHours: string
   }[];
 }
 
@@ -66,7 +67,7 @@ function Recommendations({ data, title }: Props) {
             <CardTitle text={recommendation?.summary}/>
             <Carousel className="w-full relative">
               <CarouselContent>
-                {recommendation?.images.map(image => (
+                {recommendation?.images?.map(image => (
                   <CarouselItem key={image.url}>
                     <article className="w-full relative isolate rounded-xl flex flex-col">
                       <img src={image?.url} className="h-96 w-full rounded-xl object-cover"/>
@@ -79,14 +80,14 @@ function Recommendations({ data, title }: Props) {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              {recommendation.images.length && <CarouselPrevious/>}
-              {recommendation.images.length && <CarouselNext/>}
+              {recommendation?.images?.length && <CarouselPrevious/>}
+              {recommendation?.images?.length && <CarouselNext/>}
             </Carousel>
             <div>
               <p className="text-sm">
-                {recommendation?.businessName}, {" "}
+                {recommendation?.name}, {" "}
                 <span>
-                  {recommendation.mapsUrl && (<Link
+                  {recommendation?.mapsUrl && (<Link
                     target="_blank"
                     href={recommendation?.mapsUrl}
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
@@ -99,7 +100,7 @@ function Recommendations({ data, title }: Props) {
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
-                router.push(`/booking?bn=${recommendation.businessName}&bu=${recommendation?.bookingUrl || ""}`);
+                router.push(`/booking?bn=${recommendation?.name}&bu=${recommendation?.bookingUrl || ""}`);
               }}>
               <Button type="submit">
                 Bestill bord

@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-export async function querySuggestor(question: string): Promise<string[] | null>{
+export async function querySuggester(question: string): Promise<string[] | null>{
   try {
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -56,7 +56,7 @@ export async function querySuggestor(question: string): Promise<string[] | null>
 
     // @ts-ignore
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-1106",
+      model: "gpt-4o",
       messages: messages,
       tools: tools,
       max_tokens: 2000,
@@ -72,3 +72,4 @@ export async function querySuggestor(question: string): Promise<string[] | null>
     throw error;
   }
 }
+
