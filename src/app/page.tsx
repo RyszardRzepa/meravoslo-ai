@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
+import { IconArrowElbow, IconClose, IconFilter, IconPlus } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import { ChatList } from '@/components/chat-list';
 import { EmptyScreen } from '@/components/empty-screen';
@@ -21,11 +21,24 @@ import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { saveMessage } from "@/app/actions/db";
 import { Role } from "@/lib/types";
 import { expandChat } from "@/lib/utils";
+import Filter from "@/components/filter";
 
 const threadId = new Date().getTime();
 
 export default function Page() {
+  const [filters, setFilters] = useState({
+    priceRange: [1, 4],
+    cuisines: {
+      Norwegian: false,
+      Italian: false,
+      Asian: false,
+      Vegetarian: false,
+    },
+    rating: 1,
+  });
   const [messages, setMessages] = useUIState<typeof AI>();
+  const [showFilters, setShowFilters] = useState(false);
+
   const { submitUserMessage } = useActions<typeof AI>();
   const [inputValue, setInputValue] = useState('');
   const { formRef, onKeyDown } = useEnterSubmit();
@@ -72,6 +85,41 @@ export default function Page() {
     };
   }, [inputRef]);
 
+  const removeFilter = (filterType) => {
+    if (filterType === 'priceRange') {
+      setFilters(prev => ({ ...prev, priceRange: [1, 4] }));
+    } else if (filterType === 'cuisines') {
+      setFilters(prev => ({ ...prev, cuisines: Object.fromEntries(Object.entries(prev.cuisines).map(([key, _]) => [key, false])) }));
+    } else if (filterType === 'rating') {
+      setFilters(prev => ({ ...prev, rating: 1 }));
+    }
+  };
+
+  const getActiveFilters = (filters) => {
+    const activeFilters = [];
+
+    if (filters.priceRange[0] > 1 || filters.priceRange[1] < 4) {
+      activeFilters.push({
+        type: 'priceRange',
+        label: `${'$'.repeat(filters.priceRange[0])} - ${'$'.repeat(filters.priceRange[1])}`
+      });
+    }
+
+    const activeCuisines = Object.entries(filters.cuisines)
+      .filter(([_, value]) => value)
+      .map(([key, _]) => key);
+
+    if (activeCuisines.length > 0) {
+      activeFilters.push({ type: 'cuisines', label: activeCuisines.join(', ') });
+    }
+
+    if (filters.rating > 1) {
+      activeFilters.push({ type: 'rating', label: `${filters.rating}+ Stars` });
+    }
+
+    return activeFilters;
+  };
+
   return (
     <div ref={divRef} id="chat-container" className="p-4">
       <div className="h-full">
@@ -117,6 +165,21 @@ export default function Page() {
 
       <div
         className="fixed inset-x-0 bottom-0 w-full  from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+        {getActiveFilters(filters).length > 0 && (
+          <div className="ml-4 overflow-x-auto whitespace-nowrap">
+            {getActiveFilters(filters).map((filter, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                className="mr-2 mb-2"
+                onClick={() => removeFilter(filter.type)}
+              >
+                {filter.label} <IconClose />
+              </Button>
+            ))}
+          </div>
+        )}
         <div className="mx-auto sm:max-w-2xl sm:px-4">
           <div className="px-4 py-2 space-y-4 border-t border-t-peachDark shadow-lg bg-peachLight md:py-4">
             <form
@@ -215,6 +278,8 @@ export default function Page() {
                     </TooltipTrigger>
                     <TooltipContent>Send message</TooltipContent>
                   </Tooltip>
+
+                  {/*<Filter filters={filters} setFilters={setFilters} onClose={() => setShowFilters(false)} open={showFilters}/>*/}
                 </div>
               </div>
             </form>

@@ -11,6 +11,20 @@ async function submitBookingState(restaurantName: string) {
 
   const aiState = getMutableAIState<typeof AI>();
 
+  //TODO
+  // How to use filters here? Do I set filters based on the response? Set in url params?
+  // Show active filters over the search bar?
+  // User can use filters to fetch data
+  // If user ask AI first and start using filters, How to check what filters were applied?
+  // Return columns data that we use for filters?
+  // How do we apply the ai response to the new filters? We need to run AI for each filter change?
+
+
+  // User ask Ai
+  // show response and the applied filters
+  // user change filter. We update the UI to show new results based on the new filters.
+  // we update the ui state.
+
   aiState.update([...aiState.get(), {
     role: 'system', content: 'Starting the booking process...',
   }]);

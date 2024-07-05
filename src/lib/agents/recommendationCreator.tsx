@@ -22,11 +22,11 @@ export const recommendationCreator = traceable(async function rag(context: strin
     messages: [
       {
         role: "system",
-        content: "You are a helpful assistant designed to output JSON.",
+        content: "You are a helpful assistant designed to output JSON. Always return response in user language",
       },
       {
         role: "user", content: `
-      Please return recommendations based on the context and chat history.
+      Please return recommendations based on the context and chat history. Always return response in user language. 
       Return json format [{ 
       title: "A title for the recommendations in the users language. The title is about introducing the recommendations.  Use tone of voice from the provided <context>. If we don't have information in <context> about specific details user ask, please mention this in the response",
       recommendations: [{ summary: "Short summary of the recommendation, write two sentences. Use tone of voice from the provided <context>. Explain why this is a good recommendation for user question", id: "The value of <doc_id>" }] }]. 
@@ -39,7 +39,7 @@ export const recommendationCreator = traceable(async function rag(context: strin
       `
       },
     ],
-    model: "gpt-3.5-turbo-0125",
+    model: "gpt-4o",
     response_format: { type: "json_object" },
   });
 

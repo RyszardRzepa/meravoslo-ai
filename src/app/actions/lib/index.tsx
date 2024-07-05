@@ -41,13 +41,13 @@ export const handleDefaultResponse = async ({
   console.log("filterParams", filterParams)
 
   const prompt = `\
-You are a knowledgeable Norwegian culture, food and travel assistant.
+You are a knowledgeable Norwegian culture, food and travel assistant. Alweays respond in the user language.
 Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
 
 Guidelines:
 - If the user ask for recommendations to eat food, call \`get_recommendations\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
 - If the <filterParams> object is not empty, call \`get_exact_recommendations\`. Don't call  \`get_recommendations\`.
-- If user ask follow-up questions related to previous recommendations, don't call \`get_recommendations\` or \`get_exact_recommendations\`. Answer question based on the context. 
+- If user ask follow-up questions related to previous recommendations, don't call \`get_recommendations\` or \`get_exact_recommendations\`. Answer question based on the chat history. 
 - If user ask a question that is not releated to Norwegian culture, food and travel assistant, reply accordingly using tone of voice from the provided <context>.
 - Always response only with the information that reply to <userQuestion>, nothing else.
 - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
@@ -60,13 +60,14 @@ Answer the question based only on the following context and user question:
 Context: <context> ${context} </context>
 Filter Params: <filterParams> ${JSON.stringify(filterParams)} </filterParams>
 User Question: <userQuestion> ${userQuestion} </userQuestion>
+Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
 `;
 
   const completion = runOpenAICompletion(client, {
     model: 'gpt-4o',
     stream: true,
     messages: [{
-      role: 'system',
+      role: 'user',
       content: prompt,
     }, ...aiState.get().map((info: any) => ({
       role: info.role, content: info.content, name: info.name,
@@ -97,7 +98,6 @@ User Question: <userQuestion> ${userQuestion} </userQuestion>
   });
 
   completion.onTextContent((content: string, isFinal: boolean) => {
-    console.log("onTextContent")
     const MarkdownWithLink = ({ content }: { content: string }) => {
       return <Markdown
         remarkPlugins={[remarkGfm]}
