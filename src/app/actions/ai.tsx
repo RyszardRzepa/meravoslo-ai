@@ -2,9 +2,23 @@ import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
 
-import { runAsyncFnWithoutBlocking } from '@/lib/utils';
+import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
 import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
-import { handleDefaultResponse } from "@/app/actions/lib";
+import { searchBusinessesByTags, vectorSearchBusinesses } from "@/lib/db";
+import { extractTags } from "@/lib/agents/extractTags";
+import { z } from "zod";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { supabase } from "@/lib/supabase/backend";
+import Recommendations from "@/components/recommendations";
+import { recommendationCreator } from "@/lib/agents/recommendationCreator";
+import { wrapOpenAI } from "langsmith/wrappers";
+import { OpenAI } from "openai";
+import { Recommendation } from "@/lib/types";
+
+const client = wrapOpenAI(new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+}));
 
 async function submitBookingState(restaurantName: string) {
   'use server';
@@ -59,8 +73,200 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
       </BotCard>
     );
 
-    handleDefaultResponse({
-      aiState, reply, userQuestion: content, query: content, uid, threadId
+    const [context, filterTags] = await Promise.all([vectorSearchBusinesses(content), extractTags(content)]);
+
+    console.log("filterTags", filterTags)
+    console.log("context", context)
+
+    const prompt = `
+    You are a knowledgeable Norwegian culture, food and activities assistant.
+    Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
+    
+    Guidelines:
+    - If the <filterTags> object is not empty, call \`tags_search\`. Don't call  \`vector_search\`.
+    - If the user ask followup question for recommendations to eat food and if the <filterTags> object is empty, call \`vector_search\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
+    - If user ask follow-up questions related to previous recommendations, don't call \`vector_search\` or \`tags_search\`. Answer question based on the chat history. 
+    - If user ask a question that is not releated to food or activity, reply accordingly using tone of voice from the provided <context>.
+    - Always response only with the information that reply to <userQuestion>, nothing else.
+    - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
+    - If user ask for a specific place, return only one recommendation.
+    - If you don't have a direct answer, suggest visiting a place website if you have it.
+    - Respond with the links only if they are provided inside the <context>.
+    - If user ask for a price, reply with the price range if you have the information in the context. If not, suggest visiting place website with the meny.
+    - Respond in the user's language.
+    Answer the question based only on the following context, user question, and chat history.
+    Context: <context> ${context} </context>
+    Filter Params: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
+    User Question: <userQuestion> ${content} </userQuestion>
+    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
+    `;
+
+    const completion = runOpenAICompletion(client, {
+      model: 'gpt-4o-mini',
+      stream: true,
+      messages: [{
+        role: 'system',
+        content: prompt,
+      }, ...aiState.get().map((info: any) => ({
+        role: info.role, content: info.content, name: info.name,
+      }))],
+      functions: [
+        {
+          name: 'vector_search',
+          description: 'Create max three recommendations based on the <context> number of <restaurant>. So if there is' +
+            ' only one <restaurant> in the context, return only one recommendation, etc.',
+          parameters: z.object({
+            title: z.string().describe('Short response to the user in the users language'),
+            suggestions: z.array(z.string().describe('Suggestions for followup questions')),
+            recommendations: z.array(z.object({
+              businessId: z.string().describe('The value of <business_id>'),
+              summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
+            })),
+          }),
+        },
+        {
+          name: 'tags_search',
+          description: 'Return only number "1"',
+          parameters: z.object({
+            done: z.string().describe('number "1"'),
+          }),
+        }
+      ], temperature: 0,
+    });
+
+    completion.onTextContent((content: string, isFinal: boolean) => {
+      const MarkdownWithLink = ({ content }: { content: string }) => {
+        return <Markdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: props => {
+              return (
+                <a href={props.href} className="underline text-blue-400">{props.children}</a>
+              );
+            },
+          }}
+        >
+          {content}
+        </Markdown>;
+      };
+
+      reply.update(<BotMessage>
+        <MarkdownWithLink content={content} />
+      </BotMessage>);
+      if (isFinal) {
+        reply.done();
+        aiState.done([...aiState.get(), { role: 'assistant', content }]);
+      }
+    });
+
+    completion.onFunctionCall('vector_search', async ({ recommendations, title, suggestions }) => {
+      reply.update(<BotCard>
+        <Skeleton />
+      </BotCard>);
+
+      console.log("🎯vector_search")
+      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours"
+      const { data, error } = await supabase.from('businesses').select(select).in('id', recommendations.map((r) => Number(r.businessId)));
+
+      const recommendationData = recommendations.map((aiRec) => {
+        const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
+
+        return {
+          summary: aiRec.summary,
+          businessName: business?.name,
+          address: business?.address,
+          mapsUrl: business?.mapsUrl,
+          images: business?.images,
+          bookingUrl: business?.bookingUrl,
+          district: business?.district,
+          openingHours: business?.openingHours,
+        }
+      });
+
+      if (!recommendationData) {
+        reply.done(
+          <div className="flex flex-col gap-4">
+            <BotCard>
+              <p>Beklager, vi fant ingen anbefalinger til deg.</p>
+            </BotCard>
+          </div>
+        )
+      } else {
+        reply.done(
+          <div className="flex flex-col gap-4">
+            <BotCard>
+              <Recommendations data={recommendationData}/>
+            </BotCard>
+          </div>
+        );
+      }
+
+      aiState.done([...aiState.get(), {
+        role: 'function', name: 'tags_search', content: JSON.stringify(recommendationData),
+      }]);
+    });
+
+    completion.onFunctionCall('tags_search', async () => {
+      reply.update(<BotCard>
+        <Skeleton />
+      </BotCard>);
+
+      console.log("tags_search")
+      const businessesByTags = await searchBusinessesByTags(filterTags);
+
+      const context = businessesByTags.map((business) => {
+        return `<restaurant>
+ Restaurant name: ${business.name}.
+ Tags: ${business.tags}. 
+ Matched tags: ${business.matched_tags}.
+ Searched tags: ${business.searched_tags}.
+ About restaurant: ${business.articleTitle}. \n ${business.articleContent}
+ <business_id> ${business.id} </business_id>
+ </restaurant>.\n`
+      }).join(", ")
+
+      const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiState)])
+
+      // Find business information based on the ai recommendations. We don't want to use ai to return all the
+      // business dat since it will take a lot of tokens and time.
+      const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
+        const business = businessesByTags.find((r) => r.id === aiRec.businessId);
+
+        return {
+          businessName: business?.name,
+          summary: aiRec.content,
+          address: business?.address,
+          mapsUrl: business?.mapsUrl,
+          images: business?.images,
+          bookingUrl: business?.bookingUrl,
+          district: business?.district,
+          openingHours: business?.openingHours,
+        } as Recommendation
+      });
+
+      if (!recommendationData) {
+        reply.done(
+          <div className="flex flex-col gap-4">
+            <BotCard>
+              <p>Beklager, vi fant ingen anbefalinger til deg.</p>
+            </BotCard>
+          </div>
+        )
+      } else {
+        reply.done(
+          <div className="flex flex-col gap-4">
+            <BotCard>
+              <Recommendations data={recommendationData}/>
+            </BotCard>
+          </div>
+        );
+      }
+
+      aiState.done([...aiState.get(), {
+        role: 'function',
+        name: 'tags_search',
+        content: `assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
+      }]);
     });
   });
 

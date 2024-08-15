@@ -1,24 +1,24 @@
 import OpenAI from "openai";
-
 import { wrapOpenAI } from "langsmith/wrappers";
 import { traceable } from "langsmith/traceable";
-import { searchDocs } from "@/lib/db";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
 
 const openai = wrapOpenAI(new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }));
 
-const retriever = traceable(
-  async function retriever(query: string) {
-    return searchDocs(query);
-  },
-  { run_type: "retriever" }
-);
+const item = z.object({
+  businessId: z.number(),
+  content: z.string(),
+});
+
+const Recommendations = z.object({
+  recommendations: z.array(item),
+});
 
 export const recommendationCreator = traceable(async function rag(context: string, userQuestion: string, aiState: any) {
-  // await retriever(userQuestion);
-
-  const completion = await openai.chat.completions.create({
+  const completion = await openai.beta.chat.completions.parse({
     messages: [
       {
         role: "system",
@@ -27,27 +27,22 @@ export const recommendationCreator = traceable(async function rag(context: strin
       {
         role: "user", content: `
       Please return recommendations based on the context and chat history.
-      Return json format [{ 
-      title: "A title for the recommendations in the users language. The title is about introducing the recommendations.  Use tone of voice from the provided <context>. If we don't have information in <context> about specific details user ask, please mention this in the response",
-      recommendations: [{ summary: "Short summary of the recommendation, write two sentences. Use tone of voice from the provided <context>. Explain why this is a good recommendation for user question", id: "The value of <doc_id>" }] }]. 
-  
-      recommendations include all the restaurants in the context.
       Guidelines:
       Create up to three recommendations based on the context number of <restaurant>. So if there is only one <restaurant> in the context, return only one recommendation, etc.
+      Returned values:
+      - businessId: you can find in context inside <business_id>.
+      - content: is the recommendation text in the users language that you can find by looking in the <userQuestion> value.
       Context: <context> ${context} </context>.
       User Question: <userQuestion> ${userQuestion} </userQuestion>.
       `
       },
     ],
-    model: "gpt-4o",
-    response_format: { type: "json_object" },
+    model: "gpt-4o-mini",
+    response_format: zodResponseFormat(Recommendations, "math_reasoning"),
   });
 
   try {
-    if (completion.choices[0].message.content) {
-      return JSON.parse(completion.choices[0].message.content);
-    }
-    return null;
+    return completion.choices[0].message.parsed;
   } catch (e) {
     console.error("Error parsing JSON", e);
   }
