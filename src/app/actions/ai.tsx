@@ -14,7 +14,8 @@ import Recommendations from "@/components/recommendations";
 import { recommendationCreator } from "@/lib/agents/recommendationCreator";
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAI } from "openai";
-import { Recommendation } from "@/lib/types";
+import { Recommendation, Role } from "@/lib/types";
+import { saveMessage } from "@/app/actions/db";
 
 const client = wrapOpenAI(new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -53,6 +54,9 @@ type UserMessage = {
 
 async function submitUserMessage({ content, uid, threadId }: UserMessage) {
   'use server';
+
+  // Save user question to db
+  saveMessage({ message: content, role: Role.User, uid: uid!, threadId });
 
   const aiState = getMutableAIState<typeof AI>();
 
@@ -154,6 +158,14 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
         <MarkdownWithLink content={content} />
       </BotMessage>);
       if (isFinal) {
+        saveMessage({
+          message: content,
+          role: Role.Assistant,
+          completionType: 'markdown',
+          userQuestionTags: filterTags,
+          uid: uid!,
+          threadId
+        });
         reply.done();
         aiState.done([...aiState.get(), { role: 'assistant', content }]);
       }
@@ -201,6 +213,15 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
         );
       }
 
+      saveMessage({
+        jsonResponse: recommendationData,
+        role: Role.Assistant,
+        completionType: 'vector_search',
+        userQuestionTags: filterTags,
+        uid: uid!,
+        threadId
+      });
+
       aiState.done([...aiState.get(), {
         role: 'function', name: 'tags_search', content: JSON.stringify(recommendationData),
       }]);
@@ -243,6 +264,15 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
           openingHours: business?.openingHours,
         } as Recommendation
       });
+
+      saveMessage({
+        jsonResponse: recommendationData,
+        role: Role.Assistant,
+        completionType: 'tags_search',
+        userQuestionTags: filterTags,
+        uid: uid!,
+        threadId
+      })
 
       if (!recommendationData) {
         reply.done(

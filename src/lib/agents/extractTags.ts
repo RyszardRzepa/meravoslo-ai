@@ -26,7 +26,7 @@ export async function extractTags(question: string) {
   Assistant: ["venueType:restaurant", "venueType:cafe", "saturday_lunch"]
   
   User: "Romantic dinner with wine?"
-  Assistant: ["venueType:restaurant", "venueType:wine_bar", "atmosphere:romantic"]
+  Assistant: ["venueType:restaurant", "atmosphere:romantic"]
   
   User: "Cheap beer in Oslo"
   Assistant: ["pricing:cheap_beer", "venueType:bar"]

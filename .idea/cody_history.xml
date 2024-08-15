@@ -417,6 +417,27 @@
               </chat>
               <chat>
                 <internalId value="56341750-2cb9-47ef-8741-07c5e8381492" />
+                <messages>
+                  <list>
+                    <message>
+                      <speaker value="HUMAN" />
+                      <text value="change this type to match this data format: {   summary: string;   businessName: any;   address: any;   mapsUrl: any;   images: any;   bookingUrl: any;   district: any;   openingHours: any; }[]" />
+                    </message>
+                    <message>
+                      <speaker value="ASSISTANT" />
+                      <text value="Certainly! Here's the updated type to match the data format you've described:&#10;&#10;```typescript&#10;jsonResponse?: {&#10;  summary: string;&#10;  businessName: any;&#10;  address: any;&#10;  mapsUrl: any;&#10;  images: any;&#10;  bookingUrl: any;&#10;  district: any;&#10;  openingHours: any;&#10;}[];&#10;```&#10;&#10;This new type definition is an array of objects, where each object contains the properties you specified. The `any` type is used for most properties to allow flexibility, while `summary` is explicitly typed as a string. This structure will accurately represent the data format you provided." />
+                    </message>
+                    <message>
+                      <speaker value="HUMAN" />
+                      <text value="make it generic json response" />
+                    </message>
+                    <message>
+                      <speaker value="ASSISTANT" />
+                      <text value="Certainly! Let's make it a generic JSON response. Here's the updated type definition:&#10;&#10;```typescript&#10;jsonResponse?: Record&lt;string, any&gt;[];&#10;```&#10;&#10;This type allows for a more flexible JSON response structure. It represents an array of objects where each object can have any number of properties with any types. This generic approach will accommodate various JSON structures that might be returned, including the specific format you mentioned earlier, while also allowing for potential future changes or variations in the response structure." />
+                    </message>
+                  </list>
+                </messages>
+                <updatedAt value="2024-08-15T14:23:11.389027" />
               </chat>
             </list>
           </chats>

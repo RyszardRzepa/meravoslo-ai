@@ -19,13 +19,16 @@ export async function saveBooking({ bookingUrl, businessName }: {
   return data[0].id;
 }
 
-export async function saveMessage({ role, message, uid, threadId }: {
-  message: string;
+export async function saveMessage({ role, message, jsonResponse, userQuestionTags, completionType, uid, threadId }: {
+  message?: string;
+  jsonResponse?: Record<string, any>[];
+  completionType?: string;
+  userQuestionTags?: string[];
   role: Role;
   uid: string;
   threadId: number;
 }): Promise<void> {
   await supabase.from('messages').insert(
-    { message, role, uid, threadId },
+    { message, role, uid, threadId, jsonResponse, userQuestionTags, completionType },
   ).select();
 }

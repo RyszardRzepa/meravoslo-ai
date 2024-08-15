@@ -52,7 +52,8 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
             <CardTitle text={recommendation?.summary}/>
-            <Carousel className="w-full relative">
+            {!!recommendation?.images?.length && (
+              <Carousel className="w-full relative">
               <CarouselContent>
                 {recommendation?.images?.map(image => (
                   <CarouselItem key={image.url}>
@@ -70,6 +71,7 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               {recommendation?.images?.length && <CarouselPrevious/>}
               {recommendation?.images?.length && <CarouselNext/>}
             </Carousel>
+            )}
             <div>
               <p className="text-sm">
                 {recommendation?.businessName}, {" "}

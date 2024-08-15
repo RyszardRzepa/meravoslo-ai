@@ -83,8 +83,6 @@ export default function Page() {
               submitMessage={async message => {
                 const id = Date.now();
 
-                saveMessage({ message, role: Role.User, uid: uid!, threadId });
-
                 // Add user message UI
                 setMessages(currentMessages => [
                   ...currentMessages,
@@ -133,8 +131,6 @@ export default function Page() {
                 setInputValue('');
                 if (!value) return;
 
-                saveMessage({ message: value, role: Role.User, uid: uid!, threadId });
-
                 // Add user message UI
                 setMessages(currentMessages => [
                   ...currentMessages,
@@ -157,10 +153,9 @@ export default function Page() {
                     responseMessage,
                   ]);
 
+
                   // Navigate to the end of the chat
                   expandChat();
-                  // const element = document.getElementById('chat-list');
-                  // element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (error) {
                   // You may want to show a toast or trigger an error state.
                   console.error(error);
