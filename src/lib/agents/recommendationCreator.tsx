@@ -1,23 +1,12 @@
 import OpenAI from "openai";
-
 import { wrapOpenAI } from "langsmith/wrappers";
 import { traceable } from "langsmith/traceable";
-import { searchDocs } from "@/lib/db";
 
 const openai = wrapOpenAI(new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }));
 
-const retriever = traceable(
-  async function retriever(query: string) {
-    return searchDocs(query);
-  },
-  { run_type: "retriever" }
-);
-
 export const recommendationCreator = traceable(async function rag(context: string, userQuestion: string, aiState: any) {
-  // await retriever(userQuestion);
-
   const completion = await openai.chat.completions.create({
     messages: [
       {
@@ -39,7 +28,7 @@ export const recommendationCreator = traceable(async function rag(context: strin
       `
       },
     ],
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     response_format: { type: "json_object" },
   });
 
