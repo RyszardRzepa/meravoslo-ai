@@ -173,6 +173,9 @@ dependencies:
   zod:
     specifier: ^3.22.5
     version: 3.23.8
+  zod-to-json-schema:
+    specifier: ^3.23.2
+    version: 3.23.2(zod@3.23.8)
 
 devDependencies:
   '@types/node':
@@ -541,7 +544,7 @@ packages:
       p-retry: 4.6.2
       uuid: 10.0.0
       zod: 3.23.8
-      zod-to-json-schema: 3.23.1(zod@3.23.8)
+      zod-to-json-schema: 3.23.2(zod@3.23.8)
     transitivePeerDependencies:
       - langchain
       - openai
@@ -555,7 +558,7 @@ packages:
       js-tiktoken: 1.0.12
       openai: 4.55.4(zod@3.23.8)
       zod: 3.23.8
-      zod-to-json-schema: 3.23.1(zod@3.23.8)
+      zod-to-json-schema: 3.23.2(zod@3.23.8)
     transitivePeerDependencies:
       - encoding
       - langchain
@@ -4508,7 +4511,7 @@ packages:
       uuid: 10.0.0
       yaml: 2.5.0
       zod: 3.23.8
-      zod-to-json-schema: 3.23.1(zod@3.23.8)
+      zod-to-json-schema: 3.23.2(zod@3.23.8)
     transitivePeerDependencies:
       - encoding
       - openai
@@ -7006,8 +7009,8 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /zod-to-json-schema@3.23.1(zod@3.23.8):
-    resolution: {integrity: sha512-oT9INvydob1XV0v1d2IadrR74rLtDInLvDFfAa1CG0Pmg/vxATk7I2gSelfj271mbzeM4Da0uuDQE/Nkj3DWNw==}
+  /zod-to-json-schema@3.23.2(zod@3.23.8):
+    resolution: {integrity: sha512-uSt90Gzc/tUfyNqxnjlfBs8W6WSGpNBv0rVsNxP/BVSMHMKGdthPYff4xtCHYloJGM0CFxFsb3NbC0eqPhfImw==}
     peerDependencies:
       zod: ^3.23.3
     dependencies:
