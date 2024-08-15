@@ -7,5 +7,5 @@ export type Business = {
   address: string;
   googleMapsUrl: string;
   openingHours: string;
-  // district: string;
+  district: string;
 }

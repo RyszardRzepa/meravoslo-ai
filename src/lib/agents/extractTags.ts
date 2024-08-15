@@ -1,7 +1,10 @@
 import { openai } from "@/lib/models";
 import { generateText } from 'ai';
+import { supabase } from "@/lib/supabase/backend";
 
 export async function extractTags(question: string) {
+  const { data: tags } = await supabase.from("tags").select("name");
+
   const prompt = `
   Follow these rules strictly:
   1. Only return tags from the available tags list.
@@ -16,7 +19,7 @@ export async function extractTags(question: string) {
   10. User might write question in different language than English, make sure you translate the user question first and than extract the tags.
   
   Available tags:
-  ["pricing:cheap_beer", "pricing:cheap_food", "foodType:asian", "foodType:thaj", "foodType:korean",  "foodType:japanese”, "foodType:greek", "foodType:turkish", "foodType:mexican", "foodType:chinese", "foodType:indian", "foodType:italian", "foodType:american”, "atmosphere:romantic", "diet:vegetarian", "diet:vegan", "venueType:restaurant", "venueType:cafe", "venueType:bar", "venueType:wine_bar", "venueType:bar_with_games", "venueType:cocktail_bar", "venueType:coffee_and_bar", "activity:rafting", "activity:pottery", "activity:quiz", "food:pizza", "food:hamburger", "feature:roof_terrace", "lunch", "brunch"]
+  [${tags?.map(t => t.name).join(", ")}]
   
   # Example Interactions
   User: "lunsj i oslo?"
@@ -59,7 +62,7 @@ export async function extractTags(question: string) {
     presencePenalty: 0,
   });
 
-  let json: string[] | null = null;
+  let json: string[]
 
   try {
     // Remove json string formatting ``json``
@@ -67,7 +70,7 @@ export async function extractTags(question: string) {
     json = JSON.parse(content || '[]');
   } catch (e) {
     console.error('Error parsing OpenAI response:', e);
-    json = null;
+    json = [];
   }
   return json;
 }

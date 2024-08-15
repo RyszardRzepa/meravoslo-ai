@@ -11,20 +11,7 @@ import {
 } from '@/components/ui/carousel';
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
-
-type Props = {
-  title: string;
-  data: {
-    summary: string,
-    images: [{ url: string, caption: string }],
-    address: string,
-    mapsUrl: string,
-    bookingUrl: string,
-    name: string,
-    district: string,
-    openingHours: string
-  }[];
-}
+import { Recommendation } from "@/lib/types";
 
 const CardTitle = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -56,7 +43,7 @@ const CardTitle = ({ text }: { text: string }) => {
   )
 }
 
-function Recommendations({ data, title }: Props) {
+function Recommendations({ data }: {  data: Recommendation[] }) {
   const router = useRouter();
 
   return (
@@ -74,7 +61,7 @@ function Recommendations({ data, title }: Props) {
                       <div
                         className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/10 rounded-xl "></div>
                       <div className="absolute bottom-0 p-2 overflow-hidden text-sm leading-6 text-gray-300">
-                        <p className="line-clamp-1 hover:line-clamp-2">{image.caption}</p>
+                        <p className="line-clamp-1 hover:line-clamp-2">{image.alt}</p>
                       </div>
                     </article>
                   </CarouselItem>
@@ -85,7 +72,7 @@ function Recommendations({ data, title }: Props) {
             </Carousel>
             <div>
               <p className="text-sm">
-                {recommendation?.name}, {" "}
+                {recommendation?.businessName}, {" "}
                 <span>
                   {recommendation?.mapsUrl && (<Link
                     target="_blank"
@@ -100,7 +87,7 @@ function Recommendations({ data, title }: Props) {
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
-                router.push(`/booking?bn=${recommendation?.name}&bu=${recommendation?.bookingUrl || ""}`);
+                router.push(`/booking?bn=${recommendation?.businessName}&bu=${recommendation?.bookingUrl || ""}`);
               }}>
               <Button type="submit">
                 Bestill bord

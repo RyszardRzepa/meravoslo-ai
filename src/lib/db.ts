@@ -2,15 +2,27 @@ import { embed } from 'ai';
 import { openai } from "@/lib/models";
 import { supabase } from "@/lib/supabase/backend";
 
-type Document = {
-  id: string;
-  content: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  menu: string;
-  restaurant: string;
+export type Business = {
+  id: number;
+  name: string;
+  address: string,
+  mapsUrl: string,
+  bookingUrl: string,
+  websiteUrl: string,
+  menuText: string,
+  district: string,
+  openingHours: string,
+  tags: string[],
+  articleContent: string,
+  images : Array<{ url: string, alt: string }>,
 }
+
+type BusinessByTags =  {
+  matched_tags: string[],
+  searched_tags: string[],
+  articleTitle: string,
+  articleContent: string,
+} & Business
 
 export async function createEmbedding(text: string) {
   const { embedding } = await embed({
@@ -20,31 +32,36 @@ export async function createEmbedding(text: string) {
   return embedding;
 }
 
-export async function searchDocs(message: string) {
+export async function vectorSearchBusinesses(message: string) {
   const embedding = await createEmbedding(message);
 
-  const { error: matchError, data } = await supabase.rpc('match_documents_no_metadata', {
+  const { error: matchError, data } = await supabase.rpc('vector_search_businesses', {
     query_embedding: embedding, match_threshold: 0.3, match_count: 3,
   });
 
   // filter out the documents that have the same restaurant id
   const restaurantIds = new Set();
-  const filteredData = data.filter((doc: Document) => {
-    if (restaurantIds.has(doc.restaurant)) {
+  const filteredData = data.filter((b: Business) => {
+    if (restaurantIds.has(b.id)) {
       return false;
     }
-    restaurantIds.add(doc.restaurant);
+    restaurantIds.add(b.id);
     return true;
   });
 
-  return filteredData.map((doc: Document) => {
+  return filteredData.map((doc: Business) => {
     return `<restaurant>
-                Title: ${doc.title} 
-                About: ${doc.summary}. 
-                <doc_id>${doc?.id}</doc_id>
-                <res_id>${doc?.restaurant}</res_id>
+                Business Name: ${doc.name}. 
+                About: ${doc.articleContent}. 
+                <business_id>${doc?.id}</business_id>.
               </<restaurant>`;
   });
+}
+
+export async function searchBusinessesByTags(tags: string[]): Promise<BusinessByTags[]> {
+  const { data, error } = await supabase
+    .rpc('business_recursive_tag_search', { initial_tags: tags })
+  return data
 }
 
 export async function searchRestaurantsByTags(tags: string[]) {

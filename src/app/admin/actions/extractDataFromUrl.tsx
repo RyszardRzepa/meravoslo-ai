@@ -20,7 +20,7 @@ const item = z.object({
   address: z.string(),
   googleMapsUrl: z.string(),
   openingHours: z.string(),
-  // district: z.string(),
+  district: z.string(),
 });
 
 const Business = z.object({
