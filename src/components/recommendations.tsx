@@ -32,10 +32,10 @@ const CardTitle = ({ text }: { text: string }) => {
         {clampedText}
         {!noClamp && (
           <button
-            className="reset-button text-blue-600 dark:text-blue-500 hover:underline"
+            className="px-1 text-blue-600 dark:text-blue-500 hover:underline"
             onClick={toggleExpanded}
           >
-            ...
+            <p>...</p>
           </button>
         )}
       </p>
@@ -47,7 +47,6 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
   const router = useRouter();
 
   return (
-    <div>
       <div className="flex gap-5 flex-col rounded-lg">
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
@@ -98,7 +97,6 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
           </div>
         ))}
       </div>
-    </div>
   );
 }
 

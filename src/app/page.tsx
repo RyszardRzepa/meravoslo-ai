@@ -18,8 +18,6 @@ import { Button } from '@/components/ui/button';
 import { ChatList } from '@/components/chat-list';
 import { EmptyScreen } from '@/components/empty-screen';
 import { supabaseFrontent } from "@/lib/supabase/frontend";
-import { saveMessage } from "@/app/actions/db";
-import { Role } from "@/lib/types";
 import { expandChat } from "@/lib/utils";
 
 const threadId = new Date().getTime();
@@ -73,9 +71,9 @@ export default function Page() {
   }, [inputRef]);
 
   return (
-    <div ref={divRef} id="chat-container" className="p-4">
-      <div className="h-full">
-        <div className="pt-4">
+    <div ref={divRef} id="chat-container" className="bg-background">
+      <div>
+        <div>
           {messages.length ? (
             <ChatList messages={messages}/>
           ) : (
@@ -115,7 +113,7 @@ export default function Page() {
 
       <div
         className="fixed inset-x-0 bottom-0 w-full  from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
-        <div className="mx-auto sm:max-w-2xl sm:px-4">
+        <div className="mx-auto sm:max-w-2xl">
           <div className="px-4 py-2 space-y-4 border-t border-t-peachDark shadow-lg bg-peachLight md:py-4">
             <form
               ref={formRef}
@@ -169,7 +167,7 @@ export default function Page() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="absolute left-0 w-8 h-8 p-0 rounded-full top-4 bg-background sm:left-4"
+                      className="absolute left-0 w-8 h-8 p-0 rounded-full top-4 sm:left-4"
                       onClick={e => {
                         e.preventDefault();
                         window.location.reload();

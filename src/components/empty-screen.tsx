@@ -27,7 +27,7 @@ export function EmptyScreen({
   submitMessage: (message: string) => void;
 }) {
   return (
-    <div className="mx-auto px-4">
+    <div className="mx-auto">
       <div className="rounded-lg bg-peach p-8 border-peachDark border-2">
         <h1 className="mb-2 text-lg font-semibold">
           Hei! Hvordan kan jeg hjelpe deg i dag?
