@@ -50,9 +50,10 @@ type UserMessage = {
   content: string;
   uid: string;
   threadId: number;
+  name: string;
 };
 
-async function submitUserMessage({ content, uid, threadId }: UserMessage) {
+async function submitUserMessage({ content, uid, threadId, name }: UserMessage) {
   'use server';
 
   // Save user question to db
@@ -77,28 +78,14 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
       </BotCard>
     );
 
-    const [context, filterTags] = await Promise.all([vectorSearchBusinesses(content), extractTags(content)]);
+    const [context, filterTags, prompt] = await Promise.all([
+      vectorSearchBusinesses(content),
+      extractTags(content),
+      supabase.from("prompts").select("text").eq("name", "aiResponse")
+    ]);
 
-    console.log("filterTags", filterTags)
-    console.log("context", context)
-
-    const prompt = `
-    You are a knowledgeable Norwegian culture, food and activities assistant.
-    Respond in markdown format. Respond in the user's language. If unable to answer directly, provide a relevant recommendation instead based on the context. Don't return images in the response.
-    
-    Guidelines:
-    - If the <filterTags> object is not empty, call \`tags_search\`. Don't call  \`vector_search\`.
-    - If the user ask followup question for recommendations to eat food and if the <filterTags> object is empty, call \`vector_search\`. Example: "A place to eat for 6 ppl", "Romantic places for a date", etc.
-    - If user ask follow-up questions related to previous recommendations, don't call \`vector_search\` or \`tags_search\`. Answer question based on the chat history. 
-    - If user ask a question that is not releated to food or activity, reply accordingly using tone of voice from the provided <context>.
-    - Always response only with the information that reply to <userQuestion>, nothing else.
-    - If user ask for address, map, or booking url, provide the information in the response in markdown format with the url.
-    - If user ask for a specific place, return only one recommendation.
-    - If you don't have a direct answer, suggest visiting a place website if you have it.
-    - Respond with the links only if they are provided inside the <context>.
-    - If user ask for a price, reply with the price range if you have the information in the context. If not, suggest visiting place website with the meny.
-    - Respond in the user's language.
-    Answer the question based only on the following context, user question, and chat history.
+    const enhancedPrompt = `
+    ${prompt?.data?.[0]?.text}.
     Context: <context> ${context} </context>
     Filter Params: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
     User Question: <userQuestion> ${content} </userQuestion>
@@ -110,7 +97,7 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
       stream: true,
       messages: [{
         role: 'system',
-        content: prompt,
+        content: enhancedPrompt,
       }, ...aiState.get().map((info: any) => ({
         role: info.role, content: info.content, name: info.name,
       }))],
@@ -237,14 +224,14 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
 
       const context = businessesByTags.map((business) => {
         return `<restaurant>
- Restaurant name: ${business.name}.
- Tags: ${business.tags}. 
- Matched tags: ${business.matched_tags}.
- Searched tags: ${business.searched_tags}.
- About restaurant: ${business.articleTitle}. \n ${business.articleContent}
- <business_id> ${business.id} </business_id>
- </restaurant>.\n`
-      }).join(", ")
+                 Restaurant name: ${business.name}.
+                 Tags: ${business.tags}. 
+                 Matched tags: ${business.matched_tags}.
+                 Searched tags: ${business.searched_tags}.
+                 About restaurant: ${business.articleTitle}. \n ${business.articleContent}
+                 <business_id> ${business.id} </business_id>
+                 </restaurant>.\n`
+                      }).join(", ")
 
       const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiState)])
 
@@ -301,7 +288,7 @@ async function submitUserMessage({ content, uid, threadId }: UserMessage) {
   });
 
   return {
-    id: Date.now(), display: reply.value,
+    id: Date.now(), display: reply.value, name
   };
 }
 

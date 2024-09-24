@@ -451,8 +451,41 @@
               <chat>
                 <internalId value="c3341d35-38cd-4e46-86c5-048b8c98a7fc" />
               </chat>
+              <chat>
+                <internalId value="8ef3b0f0-f2fe-4672-9138-1c24939fb498" />
+              </chat>
+              <chat>
+                <internalId value="775a9006-73af-4755-be44-a6e250f639f3" />
+              </chat>
+              <chat>
+                <internalId value="c340aec7-b2bd-43c4-9018-5c7f3e68b727" />
+              </chat>
+              <chat>
+                <internalId value="24a86ab4-b55c-4728-a757-1c571abaa4ad" />
+              </chat>
             </list>
           </chats>
+          <defaultLlm>
+            <llm>
+              <model value="anthropic/claude-3-5-sonnet-20240620" />
+              <provider value="Anthropic" />
+              <tags>
+                <list>
+                  <option value="gateway" />
+                  <option value="power" />
+                  <option value="recommended" />
+                  <option value="free" />
+                </list>
+              </tags>
+              <title value="Claude 3.5 Sonnet" />
+              <usage>
+                <list>
+                  <option value="chat" />
+                  <option value="edit" />
+                </list>
+              </usage>
+            </llm>
+          </defaultLlm>
         </AccountData>
       </list>
     </accountData>
