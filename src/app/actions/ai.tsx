@@ -4,7 +4,7 @@ import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
 
 import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
 import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
-import { searchBusinessesByTags, vectorSearchBusinesses } from "@/lib/db";
+import { searchActivitiesByTags, searchPlacesByTags, vectorSearchActivities, vectorSearchPlaces } from "@/lib/db";
 import { extractTags } from "@/lib/agents/extractTags";
 import { z } from "zod";
 import Markdown from "react-markdown";
@@ -14,7 +14,7 @@ import Recommendations from "@/components/recommendations";
 import { recommendationCreator } from "@/lib/agents/recommendationCreator";
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAI } from "openai";
-import { Recommendation, Role } from "@/lib/types";
+import { Recommendation, Role, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
 
 const client = wrapOpenAI(new OpenAI({
@@ -78,11 +78,16 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       </BotCard>
     );
 
+    const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
+    const promptName = name === TabName.ACTIVITIES ? "activityRecommendation" : "placeRecommendation";
+
     const [context, filterTags, prompt] = await Promise.all([
-      vectorSearchBusinesses(content),
+      vectorSearch(content),
       extractTags(content),
-      supabase.from("prompts").select("text").eq("name", "aiResponse")
+      supabase.from("prompts").select("text").eq("name", promptName)
     ]);
+
+    console.log("filterTags!!!", filterTags)
 
     const enhancedPrompt = `
     ${prompt?.data?.[0]?.text}.
@@ -219,26 +224,24 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
         <Skeleton />
       </BotCard>);
 
-      console.log("tags_search")
-      const businessesByTags = await searchBusinessesByTags(filterTags);
+      console.log("🏷️tags_search")
+      const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
 
-      const context = businessesByTags.map((business) => {
+      const context = response.map((item) => {
         return `<restaurant>
-                 Restaurant name: ${business.name}.
-                 Tags: ${business.tags}. 
-                 Matched tags: ${business.matched_tags}.
-                 Searched tags: ${business.searched_tags}.
-                 About restaurant: ${business.articleTitle}. \n ${business.articleContent}
-                 <business_id> ${business.id} </business_id>
+                 Restaurant name: ${item.name}.
+                 Tags: ${item.tags}. 
+                 Matched tags: ${item.matched_tags}.
+                 Searched tags: ${item.searched_tags}.
+                 About restaurant: ${item.articleTitle}. \n ${item.articleContent}
+                 <business_id> ${item.id} </business_id>
                  </restaurant>.\n`
                       }).join(", ")
 
       const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiState)])
 
-      // Find business information based on the ai recommendations. We don't want to use ai to return all the
-      // business dat since it will take a lot of tokens and time.
       const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
-        const business = businessesByTags.find((r) => r.id === aiRec.businessId);
+        const business = response.find((r) => r.id === aiRec.businessId);
 
         return {
           businessName: business?.name,
@@ -298,7 +301,10 @@ const initialAIState: {
 }[] = [];
 
 const initialUIState: {
-  id: number; display: React.ReactNode; message?: string;
+  name: string;
+  id: number;
+  display: React.ReactNode;
+  message?: string;
 }[] = [];
 
 export const AI = createAI({

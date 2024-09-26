@@ -13,3 +13,8 @@ export type Recommendation = {
   district?: string;
   openingHours?: string;
 }
+
+export enum TabName {
+  EAT_DRINK = "eat_drink",
+  ACTIVITIES = "activities",
+}

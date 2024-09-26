@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ChatTab from '@/components/ChatTab';
+import { TabName } from "@/lib/types";
 
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
@@ -31,41 +32,46 @@ export default function Page() {
   return (
     <div ref={divRef} id="chat-container" className="bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
-        <Tabs defaultValue="spise-drikke" className="" onValueChange={setActiveTab}>
+        <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
           <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent">
             <TabsTrigger
-              value="spise-drikke"
+              value={TabName.EAT_DRINK}
               className="data-[state=active]:border-b-2 data-[state=active]:border-peachDark data-[state=active]:bg-transparent"
             >
               Spise/Drikke
             </TabsTrigger>
             <TabsTrigger
-              value="aktiviteter"
+              value={TabName.ACTIVITIES}
               className="data-[state=active]:border-b-2 data-[state=active]:border-peachDark data-[state=active]:bg-transparent"
             >
               Aktiviteter
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="spise-drikke">
-            {activeTab === 'spise-drikke' && (
+          <TabsContent value={TabName.EAT_DRINK}>
               <ChatTab
                 uid={uid}
                 threadId={spiseDrikkeThreadId}
-                name={'Spise/Drikke'}
+                name={TabName.EAT_DRINK}
                 exampleMessages={[
                   {
                     heading: 'Vi ser fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
                     message: 'Vi er fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
                   },
+                  {
+                    heading: 'Hvor er beste indisk i Oslo?',
+                    message: 'Hvor er beste indisk i Oslo?',
+                  },
+                  {
+                    heading: 'Hvor kan  jeg gå for en romantisk date?',
+                    message: 'Hvor kan jeg gå for en romantisk date?',
+                  },
                 ]}
               />
-            )}
           </TabsContent>
-          <TabsContent value="aktiviteter">
-            {activeTab === 'aktiviteter' && (
+          <TabsContent value={TabName.ACTIVITIES}>
               <ChatTab
                 uid={uid}
-                name={'Aktiviteter'}
+                name={TabName.ACTIVITIES}
                 threadId={aktiviteterThreadId}
                 exampleMessages={[
                   {
@@ -74,7 +80,6 @@ export default function Page() {
                   },
                 ]}
               />
-            )}
           </TabsContent>
         </Tabs>
       </div>

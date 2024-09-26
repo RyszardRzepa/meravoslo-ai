@@ -23,61 +23,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Business } from "@/app/admin/types";
-import saveDataInDb from "@/app/admin/actions/saveDataInDb";
+import savePlacesInDb from "@/app/admin/actions/savePlacesInDb";
+import saveActivityInDb from "@/app/admin/actions/saveActivityInDb";
 import { PencilIcon } from "lucide-react";
 import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TabName } from "@/lib/types";
 
 
 const dummyData: Business[] | (() => Business[]) = []
-
-// const dummyData = [
-//   {
-//     "name": "Båbler Vinbar",
-//     "articleTitle": "Båbler Vinbar: Neonlys og lekne priser",
-//     "articleContent": "Vi har tatt en titt på vinkartet og regnbuelysene på Båbler.\nTekst & foto: Nora Sæter\nNeonskiltbutikken Naughty Neon på Alexander Kiellands plass har stengt sjappa og åpnet vinbar i stedet. Vi har testet både boblene og stemningen hos den nyåpnede vinbaren.\n\nBåbler er en liten vinbar, men med stor personlighet. Her får du herlig leken stemning, et hipt vinkart – og neonskilt på veggene såklart. Jo mørkere det blir ute, jo sterkere skinner neonlysene inne, og med 80-tallsbangers over høyttalerne er stemningen upåklagelig.\n\n«Vin behøver ikke å være seriøst» I enden av Bjerregaards gate ligger en vinbar det er vanskelig å gå forbi. Fasaden er fargerik, interiøret er som i et lekeland og på veggen henger et innrammet bilde av mottoet “Vin behøver ikke å være så jævlig seriøst”.\n\nDet er ekteparet Sonja Setare Rødahl og Mathias Rødahl som står bak konseptet, og stedet bærer tydelig preg av et ønske om nettopp å ikke ta dette med vin så altfor seriøst. Lysene på bordet har bilder av kjendiser, en vakker pride-regnbue neonlyser i vinduet, og på veggen henger et bilde av Kim Kardashian som spruter bobler på rumpa si.\n\nFør var dette en butikk hvor man kunne kjøpe neonskilt på bestilling, og man kunne designe sine helt egne neonskilt. Det kan man fortsatt gjøre, men inntil videre er lokalet forvandlet til vinbaren Båbler.\n\nBra vinkart og en halvliter for 75 kroner Utestedet kan riktignok skilte med andre ting enn bare neon, for her serveres det flasker fra hippe produsenter som Meinklang, Matassa, Milan Nestarec, Gut Oggau og Marcus Baumbergers. Eksempelvis en flaske av Baumbergers velkjente GlowGlow Riesling, får du til 750 kroner.\n\nVinkartet består av et godt utvalg både røde, hvite, oransje-, og roséviner som koster mellom 600-2000 kroner flaska. Dette inkluderer også et godt utvalg pét nat på flaske fra 650-850 kroner. Du kan altså finne deg noe funky her også!\n\nVin på glass koster mellom 120 og 290 kroner, og hold deg fast: en halvliter Sagene Pils koster 75 kroner! Med en gang man kommer inn i lokalet synes også et stort utvalg flasker med alkoholfrie bobler fra 250 kroner. Her snakker vi både kombucha og vinalternativer fra Ambijus, som er en norsk produsent.\n\nHer finnes også en søt drinkmeny bestående av, gin tonic, amaretto spritz, pink hugo spritz, limoncello spritz og campari negroni sbagliato. Alle koster 150 kroner.\n\nPerlende, boblende og sprudlende Undertegnede måtte selvsagt prøve Båblers bobler og gikk for et glass Bouchard Ainé & Fils Brut de Chardonnay (Charmat) til 130 kroner og en Charles Mignon Premium Reserve Brut (Champagne) til 180 kroner glasset.\n\nAlle boblene falt i smak, og det gjorde også snacksen. Her er nemlig ingenting overlatt til tilfeldighetene, for til og med ostepopen kommer i bobleform – og de fikk vi påfyll av hele kvelden.\n\nVinbaren kan riktignok ikke skryte på seg noen snacksmeny – den består foreløpig av ostepop og potetsticks. Det ryktes at det kommer et større utvalg av snacks etterhvert og det trengs, for her kan man bli sittende en stund!",
-//     "images": [
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/cfcaa669-ec2b-4927-8451-5045753ebe34/BaablerVinbar-juni24-NoraSaeter-26.jpg",
-//         "alt": "Image 3"
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012196566-2ISY3PQPG8L4B65Z1EBW/BaablerVinbar-juni24-NoraSaeter-3.jpg",
-//         "alt": "Du kan umulig gå forbi denne sjappa."
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012188196-1NXC74MIOSLN8KKAT3LT/BaablerVinbar-juni24-NoraSaeter-32-min.JPEG",
-//         "alt": "Useriøst interiør, men seriøst god vin."
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012398995-DRTP8MU0773HTEVLF4QH/BaablerVinbar-juni24-NoraSaeter-11.jpg",
-//         "alt": "Et utvalg alkoholfrie drikker på deilig display."
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012405763-4CQV01YXLAOTV6MJZV2Z/BaablerVinbar-juni24-NoraSaeter-41-min.JPEG",
-//         "alt": "Her får du alle farger vin på glass, til en alright pris."
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012989460-24AJZ8JH1M9Z4LWE7P2A/BaablerVinbar-juni24-NoraSaeter-35-min.JPEG",
-//         "alt": "Jo mørkere det er ute, jo finere ser det ut inne."
-//       },
-//       {
-//         "url": "https://images.squarespace-cdn.com/content/v1/5b4606ec96d4557cbd0f1e5d/1720012992276-RW33PU03PPVP1WB6NH9D/BaablerVinbar-juni24-NoraSaeter-30-min.JPEG",
-//         "alt": "Meinklang på glass!"
-//       }
-//     ],
-//     "tags": [
-//       "venueType:wine_bar",
-//       "pricing:cheap_beer",
-//       "feature:roof_terrace"
-//     ],
-//     "articleUrl": "https://meravoslo.no/nyheter/bobler-vinbar-neonlys-og-vin-i-et-lekent-lokale",
-//     "address": "Bjerregaards gate 70",
-//     "googleMapsUrl": "https://g.co/kgs/wZPo16z",
-//     "openingHours": "Torsdag - lørdag: 18-01",
-//     "district": "St. Hanshaugen"
-//   }
-// ]
 
 interface AddRecordModalProps {
   isOpen: boolean;
@@ -124,7 +78,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
     images: [],
     tags: [],
     address: '',
-    googleMapsUrl: '',
+    mapsUrl: '',
     openingHours: '',
     district: ''
   });
@@ -159,7 +113,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
       images: [],
       tags: [],
       address: "",
-      googleMapsUrl: "",
+      mapsUrl: "",
       openingHours: "",
       district: ""
     });
@@ -206,8 +160,8 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
             className="mb-2"
           />
           <Input
-            value={newRecord.googleMapsUrl}
-            onChange={(e) => setNewRecord({ ...newRecord, googleMapsUrl: e.target.value })}
+            value={newRecord.mapsUrl}
+            onChange={(e) => setNewRecord({ ...newRecord, mapsUrl: e.target.value })}
             placeholder="Enter Google Maps URL"
             className="mb-2"
           />
@@ -263,7 +217,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
   );
 };
 
-const UrlForm: React.FC = () => {
+const UrlForm = ({ name }: { name: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<Business[]>(dummyData);
   const [editingTags, setEditingTags] = useState<{ [key: number]: boolean }>({});
@@ -280,6 +234,11 @@ const UrlForm: React.FC = () => {
 
   const handleAddRecord = (newRecord: Business) => {
     setData([...data, newRecord]);
+  };
+
+  const handleRemoveRow = (index: number) => {
+    const updatedData = data.filter((_, i) => i !== index);
+    setData(updatedData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,6 +329,8 @@ const UrlForm: React.FC = () => {
                   <TableHead>Content</TableHead>
                   <TableHead>Images</TableHead>
                   <TableHead>Tags</TableHead>
+                  <TableHead>Actions</TableHead>
+
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -567,6 +528,15 @@ const UrlForm: React.FC = () => {
                         </>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => handleRemoveRow(index)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -574,7 +544,7 @@ const UrlForm: React.FC = () => {
             {!!data.length && (
               <Button onClick={async () => {
                 setLoading(true);
-                await saveDataInDb(data)
+                TabName.ACTIVITIES === name ? await saveActivityInDb(data) : await savePlacesInDb(data)
                 setData([])
                 setFormData({ url: "" })
                 setLoading(false);

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { useUIState, useActions } from 'ai/rsc';
 import { UserMessage } from '@/components/llm-stocks/message';
 import { type AI } from '../app/actions/ai';
@@ -22,7 +22,6 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  console.log("messages", messages)
   const handleSubmit = async (value: string) => {
     if (!value.trim() || !uid) return;
 
@@ -30,7 +29,8 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       ...currentMessages,
       {
         id: Date.now(),
-        display: <UserMessage>{value}</UserMessage>
+        display: <UserMessage>{value}</UserMessage>,
+        name
       },
     ]);
 

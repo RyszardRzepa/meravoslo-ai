@@ -2,6 +2,22 @@ import { openai } from "@/lib/models";
 import { generateText } from 'ai';
 import { supabase } from "@/lib/supabase/backend";
 
+function getCurrentSeason(): string {
+  const today = new Date();
+  const month = today.getMonth(); // 0-11
+  const day = today.getDate(); // 1-31
+
+  if ((month === 11 && day >= 21) || month < 2 || (month === 2 && day < 20)) {
+    return "Winter";
+  } else if (month < 5 || (month === 5 && day < 21)) {
+    return "Spring";
+  } else if (month < 8 || (month === 8 && day < 23)) {
+    return "Summer";
+  } else {
+    return "Autumn";
+  }
+}
+
 export async function extractTags(question: string) {
   const [tags, prompt] = await Promise.all([
     supabase.from("tags").select("name"),
@@ -12,10 +28,14 @@ export async function extractTags(question: string) {
   ${prompt?.data?.[0].text}
   Available tags:
   [${tags?.data?.map(t => t.name).join(", ")}]
-  User question: ${question}`
+  User question: ${question}.
+  Current season: ${getCurrentSeason()}
+  `
+
+  console.log("enhancedPrompt, enhancedPrompt", enhancedPrompt)
 
   const { text } = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: openai('gpt-4o'),
     messages: [
       {
         "role": "system",

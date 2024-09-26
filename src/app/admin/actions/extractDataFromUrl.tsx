@@ -18,7 +18,7 @@ const item = z.object({
   tags: z.array(z.string()),
   articleUrl: z.string(),
   address: z.string(),
-  googleMapsUrl: z.string(),
+  mapsUrl: z.string(),
   openingHours: z.string(),
   district: z.string(),
 });
@@ -31,8 +31,8 @@ const getUrlMarkdown = async (url: string) => {
   const fullUrl = 'https://r.jina.ai/' + url;
   const headers = {
     "X-Return-Format": "markdown",
-      "X-Wait-For-Selector": "Main-content",
-      "X-Target-Selector": "#Main-content"
+      // "X-Wait-For-Selector": "Main-content",
+      // "X-Target-Selector": "#Main-content"
   }
 
   return fetch(fullUrl, { headers })
@@ -41,7 +41,8 @@ const getUrlMarkdown = async (url: string) => {
     })
 }
 
-const runCompletation = async (markdown: string) => {
+const extractDataFromUrl = async (url: string) => {
+  const markdown = await getUrlMarkdown(url);
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -67,7 +68,7 @@ Data Fields:
 - images: An array of images with image url and alt. Match images using the alt attribute corresponding to the restaurant/business name, and include these in the JSON response. If the alt is not available, return empty string for the alt.
 - tags: An array of tags relevant to the restaurant/business based on the <available_tags>.
 - address: The address of the restaurant/business.
-- googleMapsUrl: The Google Maps URL of the restaurant/business.
+- mapsUrl: The Google Maps URL of the restaurant/business.
 - openingHours: The opening hours of the restaurant/business if exist. 
 - district: The district of the restaurant/business based on the address in the <markdown>.
 Make sure you extract images and tags for each restaurant/business if existing in the <markdown>.
@@ -90,11 +91,6 @@ Use only tags that exist in <available_tags>.
       tags: business.tags.filter(tag => tags.includes(tag))
     })),
   };
-}
-
-const extractDataFromUrl = async (url: string) => {
-  const markdown = await getUrlMarkdown(url);
-  return await runCompletation(markdown);
 }
 
 export default extractDataFromUrl;

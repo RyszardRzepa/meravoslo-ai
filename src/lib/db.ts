@@ -32,10 +32,10 @@ export async function createEmbedding(text: string) {
   return embedding;
 }
 
-export async function vectorSearchBusinesses(message: string) {
+export async function vectorSearchPlaces(message: string) {
   const embedding = await createEmbedding(message);
 
-  const { error: matchError, data } = await supabase.rpc('vector_search_businesses', {
+  const { error: matchError, data } = await supabase.rpc('vector_search_places', {
     query_embedding: embedding, match_threshold: 0.3, match_count: 3,
   });
 
@@ -58,14 +58,30 @@ export async function vectorSearchBusinesses(message: string) {
   });
 }
 
-export async function searchBusinessesByTags(tags: string[]): Promise<BusinessByTags[]> {
+export async function vectorSearchActivities(message: string) {
+  const embedding = await createEmbedding(message);
+
+  const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
+    query_embedding: embedding, match_threshold: 0.3, match_count: 3,
+  });
+
+  return data.map((doc: Business) => {
+    return `<activity>
+                Activity Name: ${doc.name}. 
+                About: ${doc.articleContent}. 
+                <activity_id>${doc?.id}</activity_id>.
+              </<restaurant>`;
+  });
+}
+
+export async function searchPlacesByTags(tags: string[]): Promise<BusinessByTags[]> {
   const { data, error } = await supabase
-    .rpc('business_recursive_tag_search', { initial_tags: tags })
+    .rpc('places_recursive_tag_search', { initial_tags: tags })
   return data
 }
 
-export async function searchRestaurantsByTags(tags: string[]) {
+export async function searchActivitiesByTags(tags: string[]): Promise<BusinessByTags[]> {
   const { data, error } = await supabase
-    .rpc('restaurant_tag_search', { initial_tags: tags })
+    .rpc('activities_recursive_tag_search', { initial_tags: tags })
   return data
 }
