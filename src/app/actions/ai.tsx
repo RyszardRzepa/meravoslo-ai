@@ -92,7 +92,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     const enhancedPrompt = `
     ${prompt?.data?.[0]?.text}.
     Context: <context> ${context} </context>
-    Filter Params: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
+    Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
     User Question: <userQuestion> ${content} </userQuestion>
     Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
     `;
@@ -113,7 +113,6 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
             ' only one <restaurant> in the context, return only one recommendation, etc.',
           parameters: z.object({
             title: z.string().describe('Short response to the user in the users language'),
-            suggestions: z.array(z.string().describe('Suggestions for followup questions')),
             recommendations: z.array(z.object({
               businessId: z.string().describe('The value of <business_id>'),
               summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
@@ -163,18 +162,20 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       }
     });
 
-    completion.onFunctionCall('vector_search', async ({ recommendations, title, suggestions }) => {
+    completion.onFunctionCall('vector_search', async ({ recommendations, title }) => {
       reply.update(<BotCard>
         <Skeleton />
       </BotCard>);
 
       console.log("🎯vector_search")
-      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours"
-      const { data, error } = await supabase.from('businesses').select(select).in('id', recommendations.map((r) => Number(r.businessId)));
+      const tableName = name === TabName.ACTIVITIES ? "activities" : "places";
+      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl";
+      const { data, error } = await supabase.from(tableName).select(select).in('id', recommendations.map((r) => Number(r.businessId)));
 
       const recommendationData = recommendations.map((aiRec) => {
         const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
 
+        console.log("business", business)
         return {
           summary: aiRec.summary,
           businessName: business?.name,
@@ -184,6 +185,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           bookingUrl: business?.bookingUrl,
           district: business?.district,
           openingHours: business?.openingHours,
+          articleUrl: business?.articleUrl,
         }
       });
 

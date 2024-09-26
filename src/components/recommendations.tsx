@@ -12,6 +12,7 @@ import {
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
 import { Recommendation } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
 
 const CardTitle = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -75,16 +76,19 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               <p className="text-sm">
                 {recommendation?.businessName}, {" "}
                 <span>
-                  {recommendation?.mapsUrl && (<Link
-                    target="_blank"
-                    href={recommendation?.mapsUrl}
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                    {recommendation?.district}
+                  {recommendation?.mapsUrl && (
+                    <Link
+                      target="_blank"
+                      href={recommendation?.mapsUrl}
+                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >
+                      {recommendation?.district}
                   </Link>)}
                 </span>
               </p>
             </div>
-            <form
+            {recommendation?.bookingUrl ?
+              <form
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
@@ -93,8 +97,20 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               <Button type="submit">
                 Bestill bord
               </Button>
-            </form>
+              </form> :
+              <Link
+                className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                href={String(recommendation.articleUrl)}>
+                Les mer
+              </Link>
+            }
+            {index < data.length - 1 && (
+              <Separator className="my-4" />
+            )}
           </div>
+
         ))}
       </div>
   );

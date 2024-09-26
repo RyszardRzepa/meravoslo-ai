@@ -5,18 +5,18 @@ import { supabase } from "@/lib/supabase/backend";
 function getCurrentSeason(): string {
   const today = new Date();
   const month = today.getMonth(); // 0-11
-  const day = today.getDate(); // 1-31
 
-  if ((month === 11 && day >= 21) || month < 2 || (month === 2 && day < 20)) {
-    return "Winter";
-  } else if (month < 5 || (month === 5 && day < 21)) {
-    return "Spring";
-  } else if (month < 8 || (month === 8 && day < 23)) {
+  if (month >= 4 && month <= 7) {
     return "Summer";
-  } else {
+  } else if (month >= 8 && month <= 9) {
     return "Autumn";
+  } else if (month >= 10 || month <= 1) {
+    return "Winter";
+  } else {
+    return "Spring";
   }
 }
+
 
 export async function extractTags(question: string) {
   const [tags, prompt] = await Promise.all([
@@ -31,8 +31,6 @@ export async function extractTags(question: string) {
   User question: ${question}.
   Current season: ${getCurrentSeason()}
   `
-
-  console.log("enhancedPrompt, enhancedPrompt", enhancedPrompt)
 
   const { text } = await generateText({
     model: openai('gpt-4o'),

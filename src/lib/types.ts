@@ -12,6 +12,7 @@ export type Recommendation = {
   bookingUrl?: string;
   district?: string;
   openingHours?: string;
+  articleUrl: string;
 }
 
 export enum TabName {
