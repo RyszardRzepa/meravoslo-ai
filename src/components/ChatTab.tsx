@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useUIState, useActions } from 'ai/rsc';
-import { UserMessage } from '@/components/llm-stocks/message';
+import { UserMessage } from '@/components/message';
 import { type AI } from '../app/actions/ai';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';

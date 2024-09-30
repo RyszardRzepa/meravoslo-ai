@@ -1,9 +1,9 @@
 import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
-import { BotCard, BotMessage, spinner } from '@/components/llm-stocks';
+import { BotCard, BotMessage } from '@/components/message';
 
 import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
-import { Skeleton } from '@/components/llm-stocks/stocks-skeleton';
+import { Skeleton } from '@/components/skeleton';
 import { searchActivitiesByTags, searchPlacesByTags, vectorSearchActivities, vectorSearchPlaces } from "@/lib/db";
 import { extractTags } from "@/lib/agents/extractTags";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAI } from "openai";
 import { Recommendation, Role, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
+import { spinner } from '@/components/spinner';
 
 const client = wrapOpenAI(new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

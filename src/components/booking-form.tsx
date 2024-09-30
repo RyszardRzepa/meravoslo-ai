@@ -14,6 +14,7 @@ import {
 import { useActions, useUIState } from "ai/rsc";
 import { AI } from "@/app/actions/ai";
 import posthog from 'posthog-js'
+import { TabName } from "@/lib/types";
 
 posthog.init('phc_YknfD4axmqkiYBRZXA4hSUF2QGnkweodW4mCju8FTjl', { api_host: 'https://eu.posthog.com' })
 
@@ -39,7 +40,7 @@ const BookingForm = ({ setDialogOpen }: Props) => {
 
     setMessages(currentMessages => [
       ...currentMessages,
-      responseMessage,
+      { ...responseMessage, name: TabName.EAT_DRINK },
     ]);
   }
 

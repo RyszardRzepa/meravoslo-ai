@@ -36,13 +36,13 @@ export default function Page() {
           <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent mb-8">
             <TabsTrigger
               value={TabName.EAT_DRINK}
-              className="data-[state=active]:border-2 data-[state=active]:border-peachDark data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:border-2 data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
             >
-              Spise/Drikke
+              Spise og Drikke
             </TabsTrigger>
             <TabsTrigger
               value={TabName.ACTIVITIES}
-              className="data-[state=active]:border-2 data-[state=active]:border-peachDark data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:border-2 data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
             >
               Aktiviteter
             </TabsTrigger>
