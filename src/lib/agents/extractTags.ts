@@ -33,7 +33,7 @@ export async function extractTags(question: string) {
   `
 
   const { text } = await generateText({
-    model: openai('gpt-4o'),
+    model: openai('gpt-4o-mini'),
     messages: [
       {
         "role": "system",

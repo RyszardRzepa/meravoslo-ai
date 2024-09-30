@@ -80,7 +80,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     );
 
     const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
-    const promptName = name === TabName.ACTIVITIES ? "activityRecommendation" : "placeRecommendation";
+    const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
 
     const [context, filterTags, prompt] = await Promise.all([
       vectorSearch(content),
@@ -101,6 +101,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
       stream: true,
+      temperature: 0.4,
       messages: [{
         role: 'system',
         content: enhancedPrompt,
@@ -127,7 +128,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
             done: z.string().describe('number "1"'),
           }),
         }
-      ], temperature: 0,
+      ],
     });
 
     completion.onTextContent((content: string, isFinal: boolean) => {
