@@ -84,7 +84,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
             }}
           />
         )}
-        <ChatScrollAnchor trackVisibility={true}/>
+        {/*<ChatScrollAnchor trackVisibility={true}/>*/}
       </div>
       <ChatInput
         onSubmit={handleSubmit}
