@@ -33,16 +33,16 @@ export default function Page() {
     <div ref={divRef} id="chat-container" className="bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
         <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
-          <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent mb-8">
+          <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent mb-4">
             <TabsTrigger
               value={TabName.EAT_DRINK}
-              className="data-[state=active]:border-2 data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
             >
               Spise og Drikke
             </TabsTrigger>
             <TabsTrigger
               value={TabName.ACTIVITIES}
-              className="data-[state=active]:border-2 data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
             >
               Aktiviteter
             </TabsTrigger>

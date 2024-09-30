@@ -8,6 +8,8 @@ import { ChatList } from '@/components/chat-list';
 import { EmptyScreen } from '@/components/empty-screen';
 import { expandChat } from "@/lib/utils";
 import ChatInput from '@/components/ChatInput';
+import { useAtBottom } from '@/lib/hooks/use-at-bottom';
+
 
 interface ChatTabProps {
   uid: string | null;
@@ -21,6 +23,9 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
   const { submitUserMessage } = useActions<typeof AI>();
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isAtBottom = useAtBottom();
+
+  console.log("is at bottom", isAtBottom)
 
   const handleSubmit = async (value: string) => {
     if (!value.trim() || !uid) return;
@@ -34,6 +39,8 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       },
     ]);
 
+    expandChat()
+
     const responseMessage = await submitUserMessage({
       threadId,
       uid,
@@ -45,8 +52,6 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       ...currentMessages,
       responseMessage,
     ]);
-
-    expandChat();
   };
 
   const filteredMessages = messages.filter(message => message.name === name);
@@ -55,7 +60,9 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
     <div>
       <div>
         {filteredMessages.length ? (
-          <ChatList messages={filteredMessages}/>
+          <>
+            <ChatList messages={filteredMessages}/>
+          </>
         ) : (
           <EmptyScreen
             exampleMessages={exampleMessages}
