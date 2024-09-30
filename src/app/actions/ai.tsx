@@ -175,7 +175,6 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       const recommendationData = recommendations.map((aiRec) => {
         const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
 
-        console.log("business", business)
         return {
           summary: aiRec.summary,
           businessName: business?.name,
@@ -217,7 +216,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       });
 
       aiState.done([...aiState.get(), {
-        role: 'function', name: 'tags_search', content: JSON.stringify(recommendationData),
+        role: 'function', name: 'tags_search', content: JSON.stringify(recommendations),
       }]);
     });
 

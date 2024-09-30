@@ -1,9 +1,9 @@
-import ScrapeDataForm from "@/app/admin/components/scrape-data-form";
-import TagsTable from "@/app/admin/components/tags-tables";
+import EditableTable from "@/app/admin/components/editable-table";
 import AuthWrapper from "@/app/admin/components/auth-wrapper";
 import { getTags } from "@/app/admin/actions/tags";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TabName } from "@/lib/types";
+import ScrapeDataForm from "@/app/admin/components/scrape-data-form";
 
 const Admin = async () => {
   const tags = await getTags()
@@ -13,7 +13,7 @@ const Admin = async () => {
   }
 
   return (
-    <div className="w-full mx-auto p-12">
+    <div>
       <AuthWrapper>
         <Tabs defaultValue="places" className="w-full">
           <TabsList className="grid sm:max-w-72 grid-cols-2 bg-gray-200">
