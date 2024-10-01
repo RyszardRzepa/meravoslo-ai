@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en" style={{ colorScheme: "light", scrollbarColor: "#888 #f1f1f1", scrollbarWidth: "thin" }}>
+    <html lang="en" style={{ height: "100vh", colorScheme: "light", scrollbarColor: "#888 #f1f1f1", scrollbarWidth: "thin" }}>
     <head>
       <meta name="color-scheme" content="light"/>
       <link

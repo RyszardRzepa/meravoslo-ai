@@ -28,7 +28,8 @@ async function submitBookingState(restaurantName: string) {
   const aiState = getMutableAIState<typeof AI>();
 
   aiState.update([...aiState.get(), {
-    role: 'system', content: 'Starting the booking process...',
+    role: 'system',
+    content: 'Starting the booking process...',
   }]);
 
   const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
@@ -62,8 +63,15 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
   const aiState = getMutableAIState<typeof AI>();
 
-  aiState.update([...aiState.get(), {
-    role: 'user', content, name: 'submitUserMessage',
+  //Since we are passing data from different tabs UI, we need to filter out the messages that are not from the same tab
+  const aiStateFiltered = aiState.get().filter((info: any) => info.name === name);
+
+  aiState.update([
+    ...aiState.get(),
+    {
+      role: 'user',
+      content,
+      name,
   }]);
 
   const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
@@ -91,17 +99,17 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     console.log("filterTags!!!", filterTags)
 
     const enhancedPrompt = `
-    ${prompt?.data?.[0]?.text}.
+    ${prompt?.data?.[0]?.text}
     Context: <context> ${context} </context>
     Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
     User Question: <userQuestion> ${content} </userQuestion>
-    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
-    `;
+    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>`;
 
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
       stream: true,
       temperature: 0.4,
+      max_tokens: 600,
       messages: [{
         role: 'system',
         content: enhancedPrompt,
@@ -219,7 +227,9 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       });
 
       aiState.done([...aiState.get(), {
-        role: 'function', name: 'tags_search', content: JSON.stringify(recommendations),
+        role: 'function',
+        name: 'tags_search',
+        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendations)}`,
       }]);
     });
 
@@ -242,12 +252,11 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
                  </restaurant>.\n`
                       }).join(", ")
 
-      const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiState)])
+      const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiStateFiltered)])
 
       const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
         const business = response.find((r) => r.id === aiRec.businessId);
 
-        console.log("business", business)
         return {
           articleTitle: business?.articleTitle,
           businessName: business?.name,
@@ -292,7 +301,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       aiState.done([...aiState.get(), {
         role: 'function',
         name: 'tags_search',
-        content: `assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
+        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
       }]);
     });
   });
