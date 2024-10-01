@@ -4,31 +4,45 @@ import { createEmbedding } from "@/lib/db";
 import { supabase } from "@/lib/supabase/backend";
 import { Business } from "@/app/admin/types";
 
+export const updateActivityInDb = async (record: Business) => {
+  const { articleContent, name, id } = record;
+  const embedding = await createEmbedding(articleContent);
+  return await supabase.from('activities').update({
+    embedding,
+    ...record
+  }).eq('id', id)
+}
+
 const saveActivityInDb = async (data: Business[]) => {
   for (let record of data) {
-    const { articleContent, name } = record;
+    const { articleContent, name, id = 0 } = record;
     const embedding = await createEmbedding(articleContent);
 
     // Check if the record exist using name if yes update it
     // if not insert it
-    const { error, data } = await supabase.from('activities').select('name').eq('name', name)
+  const { error, data } = await supabase.from('activities').select('id, name')
+    .eq('id', id)
+
     if (error) {
       throw error;
     }
 
+    console.log("data", data)
     if (data.length > 0) {
-      const { error, data } = await supabase.from('activities').update({
+      const { error } = await supabase.from('activities').update({
         embedding,
         ...record
-      }).eq('name', name)
+      }).eq('id', data?.[0].id)
       if (error) {
         throw error;
       }
     } else {
+      console.log("record", record)
       const { error, data } = await supabase.from('activities').insert({
         embedding,
         ...record
       })
+      console.log("error", error)
       if (error) {
         throw error;
       }

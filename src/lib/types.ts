@@ -4,6 +4,7 @@ export enum Role {
 }
 
 export type Recommendation = {
+  articleTitle: string;
   businessName: string;
   summary: string;
   images?: [{ url: string, alt: string }];

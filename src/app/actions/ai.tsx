@@ -111,8 +111,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       functions: [
         {
           name: 'vector_search',
-          description: 'Create max three recommendations based on the <context> number of <restaurant>. So if there is' +
-            ' only one <restaurant> in the context, return only one recommendation, etc.',
+          description: 'Create max three recommendations based on the <context> number of <data>. So if there is' +
+            ' only one <data> in the context, return only one recommendation, etc.',
           parameters: z.object({
             title: z.string().describe('Short response to the user in the users language'),
             recommendations: z.array(z.object({
@@ -171,13 +171,14 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       console.log("🎯vector_search")
       const tableName = name === TabName.ACTIVITIES ? "activities" : "places";
-      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl";
+      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl, articleTitle";
       const { data, error } = await supabase.from(tableName).select(select).in('id', recommendations.map((r) => Number(r.businessId)));
 
       const recommendationData = recommendations.map((aiRec) => {
         const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
 
         return {
+          articleTitle: business?.articleTitle,
           summary: aiRec.summary,
           businessName: business?.name,
           address: business?.address,
@@ -246,7 +247,9 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
         const business = response.find((r) => r.id === aiRec.businessId);
 
+        console.log("business", business)
         return {
+          articleTitle: business?.articleTitle,
           businessName: business?.name,
           summary: aiRec.content,
           address: business?.address,
@@ -255,6 +258,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           bookingUrl: business?.bookingUrl,
           district: business?.district,
           openingHours: business?.openingHours,
+          articleUrl: business?.articleUrl,
         } as Recommendation
       });
 
