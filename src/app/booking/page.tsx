@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { saveBooking } from "@/app/actions/db";
+import { TabName } from "@/lib/types";
 
 const ConfirmBookingAlert = ({ open, setOpen, bookingUrl }: { open: boolean, setOpen: (val: boolean) => void, bookingUrl: string }) => {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,8 @@ const ConfirmBookingAlert = ({ open, setOpen, bookingUrl }: { open: boolean, set
     const responseMessage = await submitBookingState(restaurantName!);
     setMessages(currentMessages => [
       ...currentMessages,
-      responseMessage,
+      { ...responseMessage,
+        name: TabName.EAT_DRINK },
     ]);
 
     router.push("/")

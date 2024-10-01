@@ -5,7 +5,8 @@ export type Business = {
   images: Array<{ url: string; alt: string }>;
   tags: string[];
   address: string;
-  googleMapsUrl: string;
+  mapsUrl: string;
+  googleMapsUrl?: string;
   openingHours: string;
   district: string;
 }

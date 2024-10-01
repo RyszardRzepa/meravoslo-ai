@@ -417,9 +417,75 @@
               </chat>
               <chat>
                 <internalId value="56341750-2cb9-47ef-8741-07c5e8381492" />
+                <messages>
+                  <list>
+                    <message>
+                      <speaker value="HUMAN" />
+                      <text value="change this type to match this data format: {   summary: string;   businessName: any;   address: any;   mapsUrl: any;   images: any;   bookingUrl: any;   district: any;   openingHours: any; }[]" />
+                    </message>
+                    <message>
+                      <speaker value="ASSISTANT" />
+                      <text value="Certainly! Here's the updated type to match the data format you've described:&#10;&#10;```typescript&#10;jsonResponse?: {&#10;  summary: string;&#10;  businessName: any;&#10;  address: any;&#10;  mapsUrl: any;&#10;  images: any;&#10;  bookingUrl: any;&#10;  district: any;&#10;  openingHours: any;&#10;}[];&#10;```&#10;&#10;This new type definition is an array of objects, where each object contains the properties you specified. The `any` type is used for most properties to allow flexibility, while `summary` is explicitly typed as a string. This structure will accurately represent the data format you provided." />
+                    </message>
+                    <message>
+                      <speaker value="HUMAN" />
+                      <text value="make it generic json response" />
+                    </message>
+                    <message>
+                      <speaker value="ASSISTANT" />
+                      <text value="Certainly! Let's make it a generic JSON response. Here's the updated type definition:&#10;&#10;```typescript&#10;jsonResponse?: Record&lt;string, any&gt;[];&#10;```&#10;&#10;This type allows for a more flexible JSON response structure. It represents an array of objects where each object can have any number of properties with any types. This generic approach will accommodate various JSON structures that might be returned, including the specific format you mentioned earlier, while also allowing for potential future changes or variations in the response structure." />
+                    </message>
+                  </list>
+                </messages>
+                <updatedAt value="2024-08-15T14:23:11.389027" />
+              </chat>
+              <chat>
+                <internalId value="ff40d2f2-3888-42ca-be56-37e64ea66ced" />
+              </chat>
+              <chat>
+                <internalId value="8dd419a3-3076-49c0-8198-af0d4e69d6b0" />
+              </chat>
+              <chat>
+                <internalId value="376905bf-02f1-45ce-bd21-1d3a350d8229" />
+              </chat>
+              <chat>
+                <internalId value="c3341d35-38cd-4e46-86c5-048b8c98a7fc" />
+              </chat>
+              <chat>
+                <internalId value="8ef3b0f0-f2fe-4672-9138-1c24939fb498" />
+              </chat>
+              <chat>
+                <internalId value="775a9006-73af-4755-be44-a6e250f639f3" />
+              </chat>
+              <chat>
+                <internalId value="c340aec7-b2bd-43c4-9018-5c7f3e68b727" />
+              </chat>
+              <chat>
+                <internalId value="24a86ab4-b55c-4728-a757-1c571abaa4ad" />
               </chat>
             </list>
           </chats>
+          <defaultLlm>
+            <llm>
+              <model value="anthropic/claude-3-5-sonnet-20240620" />
+              <provider value="Anthropic" />
+              <tags>
+                <list>
+                  <option value="gateway" />
+                  <option value="power" />
+                  <option value="recommended" />
+                  <option value="free" />
+                </list>
+              </tags>
+              <title value="Claude 3.5 Sonnet" />
+              <usage>
+                <list>
+                  <option value="chat" />
+                  <option value="edit" />
+                </list>
+              </usage>
+            </llm>
+          </defaultLlm>
         </AccountData>
       </list>
     </accountData>

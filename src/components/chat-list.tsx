@@ -4,12 +4,16 @@ export function ChatList({ messages }: { messages: any[] }) {
   }
 
   return (
-    <div className="relative max-w-2xl mb-32">
+    <div className="pb-24">
       {messages.map((message, index) => (
-        <div key={index} className="mb-4">
+        <div
+          key={index}
+          className="mb-4"
+        >
           {message.display}
         </div>
       ))}
+      <div id="chat-list-end" />
     </div>
   );
 }

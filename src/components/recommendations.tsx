@@ -12,6 +12,7 @@ import {
 import { useClampText } from "use-clamp-text";
 import { useState } from "react";
 import { Recommendation } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
 
 const CardTitle = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -32,10 +33,10 @@ const CardTitle = ({ text }: { text: string }) => {
         {clampedText}
         {!noClamp && (
           <button
-            className="reset-button text-blue-600 dark:text-blue-500 hover:underline"
+            className="px-1 text-blue-600 dark:text-blue-500 hover:underline"
             onClick={toggleExpanded}
           >
-            ...
+            <p>...</p>
           </button>
         )}
       </p>
@@ -47,12 +48,12 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
   const router = useRouter();
 
   return (
-    <div>
       <div className="flex gap-5 flex-col rounded-lg">
         {data.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
             <CardTitle text={recommendation?.summary}/>
-            <Carousel className="w-full relative">
+            {!!recommendation?.images?.length && (
+              <Carousel className="w-full relative">
               <CarouselContent>
                 {recommendation?.images?.map(image => (
                   <CarouselItem key={image.url}>
@@ -70,20 +71,24 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               {recommendation?.images?.length && <CarouselPrevious/>}
               {recommendation?.images?.length && <CarouselNext/>}
             </Carousel>
+            )}
             <div>
               <p className="text-sm">
                 {recommendation?.businessName}, {" "}
                 <span>
-                  {recommendation?.mapsUrl && (<Link
-                    target="_blank"
-                    href={recommendation?.mapsUrl}
-                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                    {recommendation?.district}
+                  {recommendation?.mapsUrl && (
+                    <Link
+                      target="_blank"
+                      href={recommendation?.mapsUrl}
+                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >
+                      {recommendation?.district}
                   </Link>)}
                 </span>
               </p>
             </div>
-            <form
+            {recommendation?.bookingUrl ?
+              <form
               className="mt-1"
               onSubmit={(e) => {
                 e.preventDefault();
@@ -92,11 +97,22 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               <Button type="submit">
                 Bestill bord
               </Button>
-            </form>
+              </form> :
+              <Link
+                className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                href={String(recommendation.articleUrl)}>
+                Les mer
+              </Link>
+            }
+            {index < data.length - 1 && (
+              <Separator className="my-4" />
+            )}
           </div>
+
         ))}
       </div>
-    </div>
   );
 }
 

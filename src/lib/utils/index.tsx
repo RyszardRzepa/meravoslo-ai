@@ -149,7 +149,7 @@ export const expandChat = () => {
   const chatContainer = document.getElementById('chat-container');
   if (chatContainer) {
     scrollToTheChatEnd();
-    chatContainer.style.height = `${chatContainer.offsetHeight + 300}px`;
+    // chatContainer.style.height = `${chatContainer.offsetHeight + 300}px`;
     scrollToTheChatEnd();
   }
 }

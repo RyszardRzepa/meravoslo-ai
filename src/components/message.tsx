@@ -104,6 +104,7 @@ export function SuggestionCard({
                     id: Date.now(),
                     display: <UserMessage>{suggestion}</UserMessage>,
                     message: suggestion,
+                    name: 'User',
                   },
                 ]);
 
@@ -112,6 +113,7 @@ export function SuggestionCard({
                   content: suggestion,
                   uid,
                   threadId,
+                  name: 'User',
                 });
 
                 setMessages(currentMessages => [

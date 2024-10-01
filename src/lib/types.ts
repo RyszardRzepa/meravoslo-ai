@@ -12,4 +12,10 @@ export type Recommendation = {
   bookingUrl?: string;
   district?: string;
   openingHours?: string;
+  articleUrl: string;
+}
+
+export enum TabName {
+  EAT_DRINK = "eat_drink",
+  ACTIVITIES = "activities",
 }
