@@ -3,6 +3,7 @@ import Textarea from 'react-textarea-autosize';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
+import Link from "next/link";
 
 interface ChatInputProps {
   disabled?: boolean;
@@ -80,7 +81,11 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                 </Tooltip>
               </div>
             </div>
-          <p className=" text-xs pt-2 text-center text-gray-600">Vår AI kan gi unøyaktig informasjon og/eller det kan ha blitt endret. Derfor er det alltid lurt å undersøke aktuelt steds priser, åpningstider o.l.</p>
+            <p className=" text-xs pt-2 text-center text-gray-600">
+              Vår AI kan gi unøyaktig informasjon og/eller det kan ha blitt endret. Derfor er det alltid lurt å
+              undersøke aktuelt steds priser, åpningstider o.l.
+              <Link href="https://meravoslo.no/chat-terms-service" target="_blank"> Vår <span className="underline"> vilkår-tjeneste</span></Link>
+            </p>
           </form>
         </div>
       </div>
