@@ -38,7 +38,7 @@ export default function Page() {
               value={TabName.EAT_DRINK}
               className="data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
             >
-              Spise og Drikke
+              Mat og Drikke
             </TabsTrigger>
             <TabsTrigger
               value={TabName.ACTIVITIES}
@@ -54,7 +54,7 @@ export default function Page() {
                 name={TabName.EAT_DRINK}
                 exampleMessages={[
                   {
-                    heading: 'Vi ser fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
+                    heading: 'Vi er fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
                     message: 'Vi er fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
                   },
                   {

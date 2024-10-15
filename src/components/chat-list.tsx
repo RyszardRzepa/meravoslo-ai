@@ -4,7 +4,7 @@ export function ChatList({ messages }: { messages: any[] }) {
   }
 
   return (
-    <div className="pb-24">
+    <div className="pb-36">
       {messages.map((message, index) => (
         <div
           key={index}

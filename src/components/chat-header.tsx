@@ -8,7 +8,7 @@ export default function ChatHeader({ title }: { title?: string }) {
   return (
     <header
       key="1"
-      className="flex items-center justify-between px-4 py-3 text-gray-900"
+      className="flex items-center justify-between py-3 text-gray-900"
     >
       <div className="flex flex-row gap-2 items-center">
         <Button

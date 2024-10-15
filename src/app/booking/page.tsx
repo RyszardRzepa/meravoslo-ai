@@ -75,10 +75,10 @@ export default function BookingPage() {
   const bookingUrl = params.get("bu") ? params.get("bu")! : "https://booking.gastroplanner.no/maximus/t";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       <ChatHeader/>
 
-      <div className="pl-4 pr-4 pb-4">
+      <div className="pb-4">
         <div className="pb-2">
           <p className="text-lg semi-bold">Bestill bord på {params.get("bn")}</p>
         </div>

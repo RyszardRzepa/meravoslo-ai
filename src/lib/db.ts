@@ -21,6 +21,7 @@ type BusinessByTags =  {
   matched_tags: string[],
   searched_tags: string[],
   articleTitle: string,
+  articleUrl: string,
   articleContent: string,
 } & Business
 

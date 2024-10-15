@@ -36,7 +36,7 @@ const CardTitle = ({ text }: { text: string }) => {
             className="px-1 text-blue-600 dark:text-blue-500 hover:underline"
             onClick={toggleExpanded}
           >
-            <p>...</p>
+            <p className="">... 👉</p>
           </button>
         )}
       </p>
@@ -47,18 +47,24 @@ const CardTitle = ({ text }: { text: string }) => {
 function Recommendations({ data }: {  data: Recommendation[] }) {
   const router = useRouter();
 
+  const sortedData = [...data].sort((a, b) => {
+    if (a.images?.length && !b.images?.length) return -1;
+    if (!a.images?.length && b.images?.length) return 1;
+    return 0;
+  });
+
   return (
       <div className="flex gap-5 flex-col rounded-lg">
-        {data.map((recommendation, index) => (
+        {sortedData.map((recommendation, index) => (
           <div key={index} className="flex flex-col gap-2">
             <CardTitle text={recommendation?.summary}/>
             {!!recommendation?.images?.length && (
               <Carousel className="w-full relative">
-              <CarouselContent>
-                {recommendation?.images?.map(image => (
-                  <CarouselItem key={image.url}>
-                    <article className="w-full relative isolate rounded-xl flex flex-col">
-                      <img src={image?.url} className="h-96 w-full rounded-xl object-cover"/>
+                <CarouselContent>
+                  {recommendation?.images?.map(image => (
+                    <CarouselItem key={image.url}>
+                      <article className="w-full relative isolate rounded-xl flex flex-col">
+                        <img src={image?.url} className="h-96 w-full rounded-xl object-cover"/>
                       <div
                         className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/10 rounded-xl "></div>
                       <div className="absolute bottom-0 p-2 overflow-hidden text-sm leading-6 text-gray-300">
@@ -72,39 +78,53 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               {recommendation?.images?.length && <CarouselNext/>}
             </Carousel>
             )}
-            <div>
-              <p className="text-sm">
+            <div className="mb-1 gap-1 flex flex-col">
+              <p className="text-sm text-gray-600">
                 {recommendation?.businessName}, {" "}
                 <span>
                   {recommendation?.mapsUrl && (
                     <Link
                       target="_blank"
                       href={recommendation?.mapsUrl}
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                      className="text-sm hover:underline"
                     >
                       {recommendation?.district}
-                  </Link>)}
+                    </Link>)}
                 </span>
               </p>
+              {recommendation?.bookingUrl && recommendation.articleUrl && (
+                <p className="text-sm">Les mer på <span className="italic">
+                   <Link
+                     className="font-sm  hover:underline"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     href={String(recommendation.articleUrl)}>
+                      {recommendation.articleTitle}
+                   </Link>
+                </span>
+                </p>)}
             </div>
             {recommendation?.bookingUrl ?
               <form
-              className="mt-1"
-              onSubmit={(e) => {
-                e.preventDefault();
-                router.push(`/booking?bn=${recommendation?.businessName}&bu=${recommendation?.bookingUrl || ""}`);
-              }}>
-              <Button type="submit">
-                Bestill bord
-              </Button>
+                className="mt-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  router.push(`/booking?bn=${recommendation?.businessName}&bu=${recommendation?.bookingUrl || ""}`);
+                }}
+              >
+                <Button type="submit">
+                  Bestill bord
+                </Button>
               </form> :
-              <Link
-                className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-                href={String(recommendation.articleUrl)}>
-                Les mer
-              </Link>
+              <p>Les mer på <span className="italic">
+                   <Link
+                     className="text-blue-600 dark:text-blue-500 hover:underline"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     href={String(recommendation.articleUrl)}>
+                  {recommendation.articleTitle}
+                   </Link>
+                </span></p>
             }
             {index < data.length - 1 && (
               <Separator className="my-4" />

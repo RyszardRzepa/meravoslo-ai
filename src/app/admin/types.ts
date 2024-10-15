@@ -1,4 +1,5 @@
 export type Business = {
+  id?: number;
   name: string;
   articleTitle: string;
   articleContent: string;
