@@ -24,11 +24,10 @@ export async function extractTags(question: string) {
     supabase.from("prompts").select("text").eq("name", "extractTags")
   ]);
 
-  const enhancedPrompt = `
+  const systemPrompt = `
   ${prompt?.data?.[0].text}
   Available tags:
   [${tags?.data?.map(t => t.name).join(", ")}]
-  User question: ${question}.
   Current season: ${getCurrentSeason()}
   `
 
@@ -37,16 +36,15 @@ export async function extractTags(question: string) {
     messages: [
       {
         "role": "system",
-        "content": "You are a tag extraction assistant. Your task is to analyze user questions and return tags from a predefined list that" +
-          " are relevant to user question."
+        "content": systemPrompt
       },
       {
         "role": "user",
-        "content": enhancedPrompt
+        "content": question
       },
     ],
     temperature: 0,
-    maxTokens: 500,
+    maxTokens: 1000,
     topP: 1,
     frequencyPenalty: 0,
     presencePenalty: 0,

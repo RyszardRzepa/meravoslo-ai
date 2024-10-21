@@ -1,5 +1,5 @@
 import 'server-only';
-import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
+import { createAI, createStreamableUI, getMutableAIState, getAIState } from 'ai/rsc';
 import { BotCard, BotMessage } from '@/components/message';
 
 import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
@@ -55,6 +55,13 @@ type UserMessage = {
   name: string;
 };
 
+async function resetAIState() {
+  'use server';
+
+  const aiState = getMutableAIState<typeof AI>();
+  aiState.done(initialAIState);
+}
+
 async function submitUserMessage({ content, uid, threadId, name }: UserMessage) {
   'use server';
 
@@ -67,7 +74,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
   const aiStateFiltered = aiState.get().filter((info: any) => info.name === name);
 
   aiState.update([
-    ...aiState.get(),
+    ...aiStateFiltered,
     {
       role: 'user',
       content,
@@ -102,18 +109,21 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     ${prompt?.data?.[0]?.text}
     Context: <context> ${context} </context>
     Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
-    User Question: <userQuestion> ${content} </userQuestion>
     Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>`;
 
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
       stream: true,
-      temperature: 0.4,
-      max_tokens: 600,
+      temperature: 0.7,
+      max_tokens: 4000,
       messages: [{
         role: 'system',
         content: enhancedPrompt,
-      }, ...aiState.get().map((info: any) => ({
+      },{
+        role: 'user',
+        content: content,
+      },
+        ...aiState.get().map((info: any) => ({
         role: info.role, content: info.content, name: info.name,
       }))],
       functions: [
@@ -228,8 +238,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       aiState.done([...aiState.get(), {
         role: 'function',
-        name: 'tags_search',
         content: `Assistant responded with these recommendations: ${JSON.stringify(recommendations)}`,
+        name,
       }]);
     });
 
@@ -241,6 +251,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       console.log("🏷️tags_search")
       const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
 
+      console.log("response", response.length)
       const context = response.map((item) => {
         return `<restaurant>
                  Restaurant name: ${item.name}.
@@ -300,8 +311,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       aiState.done([...aiState.get(), {
         role: 'function',
-        name: 'tags_search',
-        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
+        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`,
+        name,
       }]);
     });
   });
@@ -327,5 +338,6 @@ export const AI = createAI({
   actions: {
     submitUserMessage,
     submitBookingState,
+    resetAIState
   }, initialUIState, initialAIState,
 });

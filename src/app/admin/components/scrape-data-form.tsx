@@ -26,6 +26,7 @@ const ScrapeDataForm = ({ name }: { name: TabName }) => {
       setLoading(false);
     } catch (e) {
       console.log("error", e)
+      setLoading(false);
     }
   };
 
