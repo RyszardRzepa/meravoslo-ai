@@ -74,7 +74,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
   const aiStateFiltered = aiState.get().filter((info: any) => info.name === name);
 
   aiState.update([
-    ...aiState.get(),
+    ...aiStateFiltered,
     {
       role: 'user',
       content,
@@ -111,12 +111,11 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
     Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>`;
 
-    console.log("enhancedPrompt!!", enhancedPrompt)
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
       stream: true,
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 4000,
       messages: [{
         role: 'system',
         content: enhancedPrompt,
@@ -239,8 +238,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       aiState.done([...aiState.get(), {
         role: 'function',
-        name: 'tags_search',
         content: `Assistant responded with these recommendations: ${JSON.stringify(recommendations)}`,
+        name,
       }]);
     });
 
@@ -312,8 +311,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       aiState.done([...aiState.get(), {
         role: 'function',
-        name: 'tags_search',
-        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`
+        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`,
+        name,
       }]);
     });
   });
