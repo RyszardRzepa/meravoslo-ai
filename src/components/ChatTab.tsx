@@ -5,10 +5,10 @@ import { type AI } from '../app/actions/ai';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import { ChatList } from '@/components/chat-list';
 import { EmptyScreen } from '@/components/empty-screen';
-import { expandChat } from "@/lib/utils";
 import ChatInput from '@/components/ChatInput';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { useScrollToBottom } from "@/lib/hooks/use-scroll-to-bottom";
 
 interface ChatTabProps {
   uid: string | null;
@@ -28,6 +28,9 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
 
   const filteredMessages = messages.filter(message => message.name === name);
 
+  const [messagesContainerRef, messagesEndRef] =
+    useScrollToBottom<HTMLDivElement>();
+
   const handleSubmit = async (value: string) => {
     if (!value.trim() || !uid || isLimitReached) return;
 
@@ -43,8 +46,6 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       checkMessageLimit(newMessages);
       return newMessages;
     });
-
-    expandChat()
 
     const responseMessage = await submitUserMessage({
       threadId,
@@ -65,9 +66,6 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
     setIsLimitReached(filteredMessages.length >= MESSAGE_LIMIT);
   };
 
-
-  console.log("messages", messages)
-
   const handleNewChat = () => {
     setMessages(currentMessages => {
       const newMessages = currentMessages.filter(message => message.name !== name);
@@ -78,49 +76,58 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
   };
 
   return (
-    <div>
-      <div>
-        {filteredMessages.length ? (
-          <>
-            <ChatList messages={filteredMessages}/>
-          </>
-        ) : (
-          <EmptyScreen
-            exampleMessages={exampleMessages}
-            submitMessage={async message => {
-              const id = Date.now();
-              setMessages(currentMessages => {
-                const newMessages = [
-                  ...currentMessages,
-                  {
-                    id,
-                    display: <UserMessage>{message}</UserMessage>,
-                    name,
-                  },
-                ];
-                checkMessageLimit(newMessages);
-                return newMessages;
-              });
+    <div className="flex flex-row justify-center pb-4 md:pb-8 h-dvh bg-background">
+      <div className="flex flex-col justify-between items-center gap-4">
+        <div
+          ref={messagesContainerRef}
+          className="flex flex-col gap-4 h-full w-dvw items-center overflow-y-scroll"
+        >
+          {filteredMessages.length ? (
+            <>
+              <ChatList messages={filteredMessages}/>
+            </>
+          ) : (
+            <EmptyScreen
+              exampleMessages={exampleMessages}
+              submitMessage={async message => {
+                const id = Date.now();
+                setMessages(currentMessages => {
+                  const newMessages = [
+                    ...currentMessages,
+                    {
+                      id,
+                      display: <UserMessage>{message}</UserMessage>,
+                      name,
+                    },
+                  ];
+                  checkMessageLimit(newMessages);
+                  return newMessages;
+                });
 
-              const responseMessage = await submitUserMessage({
-                content: message,
-                uid: uid!,
-                threadId,
-                name,
-              });
+                const responseMessage = await submitUserMessage({
+                  content: message,
+                  uid: uid!,
+                  threadId,
+                  name,
+                });
 
-              setMessages(currentMessages => {
-                const newMessages = [...currentMessages, responseMessage];
-                checkMessageLimit(newMessages);
-                return newMessages;
-              });
-            }}
+                setMessages(currentMessages => {
+                  const newMessages = [...currentMessages, responseMessage];
+                  checkMessageLimit(newMessages);
+                  return newMessages;
+                });
+              }}
+            />
+          )}
+
+          <div
+            ref={messagesEndRef}
+            className="shrink-0 min-w-[24px] min-h-[24px]"
           />
-        )}
-      </div>
-      {isLimitReached ? (
-        <div className="text-center mb-8 mt-[-8rem]">
-          <div className="mb-8">
+        </div>
+        {isLimitReached ? (
+          <div className="text-center mb-8 mt-[-8rem]">
+            <div className="mb-8">
             <Separator/>
           </div>
           <p className="mb-4">Denne samtalen har nådd sin grense.</p>
@@ -139,7 +146,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
           disabled={isLimitReached}
         />
       )}
-
+      </div>
     </div>
   );
 }

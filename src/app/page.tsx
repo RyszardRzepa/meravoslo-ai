@@ -9,7 +9,6 @@ import { TabName } from "@/lib/types";
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('spise-drikke');
-  const divRef = useRef(null);
 
   const spiseDrikkeThreadId = useRef(new Date().getTime()).current;
   const aktiviteterThreadId = useRef(new Date().getTime()).current;
@@ -30,7 +29,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div ref={divRef} id="chat-container" className="bg-background">
+    <div id="chat-container" className="bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
         <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
           <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent mb-4">
