@@ -76,11 +76,11 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
   };
 
   return (
-    <div className="flex flex-row justify-center pb-4 md:pb-8 h-dvh bg-background">
-      <div className="flex flex-col justify-between items-center gap-4">
+    <div className="h-dvh">
+      <div>
         <div
           ref={messagesContainerRef}
-          className="flex flex-col gap-4 h-full w-dvw items-center overflow-y-scroll"
+          className="h-full w-dvw overflow-y-scroll bg-peachLight"
         >
           {filteredMessages.length ? (
             <>
@@ -126,8 +126,10 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
           />
         </div>
         {isLimitReached ? (
-          <div className="text-center mb-8 mt-[-8rem]">
-            <div className="mb-8">
+          <div
+            className="bg-peachLight fixed inset-x-0 bottom-0 w-full ">
+            <div className="text-center mb-6">
+              <div className="mb-6">
             <Separator/>
           </div>
           <p className="mb-4">Denne samtalen har nådd sin grense.</p>
@@ -137,6 +139,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
             Start ny chat
           </Button>
         </div>
+          </div>
       ) : (
         <ChatInput
           onSubmit={handleSubmit}

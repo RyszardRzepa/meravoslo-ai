@@ -4,7 +4,7 @@ import { createEmbedding } from "@/lib/db";
 import { supabase } from "@/lib/supabase/backend";
 import { Business } from "@/app/admin/types";
 
-const insertRecord = async (record, embedding) => {
+const insertRecord = async (record: any, embedding: any) => {
   // First, get the maximum ID from the table
   const { data: maxIdRecord, error: maxIdError } = await supabase
     .from('places')
