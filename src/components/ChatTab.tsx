@@ -21,7 +21,7 @@ const MESSAGE_LIMIT = 6;
 
 export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTabProps) {
   const [messages, setMessages] = useUIState<typeof AI>();
-  const { submitUserMessage } = useActions<typeof AI>();
+  const { submitUserMessage, resetAIState } = useActions<typeof AI>();
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [isLimitReached, setIsLimitReached] = useState(false);
@@ -74,6 +74,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       return newMessages;
     });
     setIsLimitReached(false);
+    resetAIState();
   };
 
   return (
