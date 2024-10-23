@@ -17,10 +17,12 @@ import { OpenAI } from "openai";
 import { Recommendation, Role, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
 import { spinner } from '@/components/spinner';
+import { openai } from "@/lib/models";
 
-const client = wrapOpenAI(new OpenAI({
+const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-}));
+});
+
 
 async function submitBookingState(restaurantName: string) {
   'use server';
@@ -264,6 +266,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
                       }).join(", ")
 
       const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiStateFiltered)])
+
+      console.log("recommendationsResponse length", recommendationsResponse?.recommendations?.length)
 
       const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
         const business = response.find((r) => r.id === aiRec.businessId);
