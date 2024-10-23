@@ -36,7 +36,7 @@ const CardTitle = ({ text }: { text: string }) => {
             className="px-1 text-blue-600 dark:text-blue-500 hover:underline"
             onClick={toggleExpanded}
           >
-            <p className="">... 👉</p>
+            <p className="">... 👇</p>
           </button>
         )}
       </p>

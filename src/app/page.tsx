@@ -5,6 +5,7 @@ import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ChatTab from '@/components/ChatTab';
 import { TabName } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
 
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
@@ -32,20 +33,23 @@ export default function Page() {
     <div id="chat-container" className="bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
         <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
-          <TabsList className="grid sm:max-w-72 grid-cols-2 bg-transparent mb-4">
+          <TabsList className="rounded-none grid sm:max-w-72 grid-cols-2 bg-transparent mb-2">
             <TabsTrigger
               value={TabName.EAT_DRINK}
-              className="data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:text-black data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
             >
               Mat og Drikke
             </TabsTrigger>
             <TabsTrigger
               value={TabName.ACTIVITIES}
-              className="data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent data-[state=active]:rounded-md"
+              className="data-[state=active]:text-black data-[state=active]:border border border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
             >
               Aktiviteter
             </TabsTrigger>
           </TabsList>
+
+          <Separator className="bg-gray-200 h-[1.5px]"/>
+
           <TabsContent value={TabName.EAT_DRINK}>
               <ChatTab
                 uid={uid}
