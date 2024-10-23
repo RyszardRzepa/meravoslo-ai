@@ -1,12 +1,10 @@
 import OpenAI from "openai";
-import { wrapOpenAI } from "langsmith/wrappers";
-import { traceable } from "langsmith/traceable";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-const openai = wrapOpenAI(new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-}));
+});
 
 const item = z.object({
   businessId: z.number(),
@@ -17,7 +15,7 @@ const Recommendations = z.object({
   recommendations: z.array(item),
 });
 
-export const recommendationCreator = traceable(async function rag(context: string, userQuestion: string, aiState: any) {
+export const recommendationCreator = async (context: string, userQuestion: string, aiState: any) => {
   const completion = await openai.beta.chat.completions.parse({
     messages: [
       {
@@ -46,4 +44,4 @@ export const recommendationCreator = traceable(async function rag(context: strin
   } catch (e) {
     console.error("Error parsing JSON", e);
   }
-});
+}
