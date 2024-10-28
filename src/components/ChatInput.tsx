@@ -1,7 +1,7 @@
 import { useState, RefObject } from 'react';
 import Textarea from 'react-textarea-autosize';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { IconArrowElbow, IconPlus } from '@/components/ui/icons';
+import { IconArrowElbow, IconMessage, IconPlus, IconSend } from '@/components/ui/icons';
 import { Button } from '@/components/ui/button';
 import Link from "next/link";
 
@@ -30,32 +30,14 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
             ref={formRef}
             onSubmit={handleSubmit}
           >
-            <div className="relative flex flex-col w-full px-10 overflow-hidden max-h-60 grow bg-peachLight rounded-md border px-12">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    disabled={disabled}
-                    variant="outline"
-                    size="icon"
-                    className="absolute left-0 w-8 h-8 p-0 rounded-full top-4 left-4"
-                    onClick={e => {
-                      e.preventDefault();
-                      window.location.reload();
-                    }}
-                  >
-                    <IconPlus/>
-                    <span className="sr-only">Ny Chat</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Ny Chat</TooltipContent>
-              </Tooltip>
+            <div className="relative flex flex-col w-full pr-14 pl-6 overflow-hidden max-h-60 grow bg-peach border border-peachDark rounded-full">
               <Textarea
                 disabled={disabled}
                 ref={inputRef}
                 tabIndex={0}
                 onKeyDown={onKeyDown}
-                placeholder="Spør meg her"
-                className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+                placeholder="Spør meg her..."
+                className="min-h-[54px] w-full resize-none bg-transparent  py-[1rem] focus-within:outline-none sm:text-sm placeholder:text-gray-700"
                 autoFocus
                 spellCheck={false}
                 autoComplete="off"
@@ -65,26 +47,25 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}
               />
-              <div className="absolute right-0 right-4 md:right-4 lg:right-4 top-4">
+              <div className="absolute right-0 right-4 md:right-4 lg:right-4 top-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       type="submit"
                       size="icon"
                       disabled={inputValue === ''}
+                      className="bg-transparent shadow-none hover:bg-transparent"
                     >
-                      <IconArrowElbow/>
-                      <span className="sr-only">Send message</span>
+                      <IconSend />
+                      <span className="sr-only">Send melding</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Send message</TooltipContent>
+                  <TooltipContent>Send medling</TooltipContent>
                 </Tooltip>
               </div>
             </div>
             <p className=" text-xs pt-2 text-center text-gray-600">
-              Vår AI kan gi unøyaktig informasjon og/eller det kan ha blitt endret. Derfor er det alltid lurt å
-              undersøke aktuelt steds priser, åpningstider o.l.
-              <Link href="https://meravoslo.no/chat-terms-service" target="_blank"> Vår <span className="underline"> vilkår-tjeneste</span></Link>
+              Mer av Oslo AI kan gjøre feil, så sjekk viktig informasjon. Les  <Link href="https://meravoslo.no/chat-terms-service" target="_blank"> våre <span className="underline"> vilkår for tjenesten.</span></Link>
             </p>
           </form>
         </div>

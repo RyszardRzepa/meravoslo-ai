@@ -4,11 +4,11 @@ export function ChatList({ messages }: { messages: any[] }) {
   }
 
   return (
-    <div className="pb-36">
+    <div className="pb-36 mt-6">
       {messages.map((message, index) => (
         <div
           key={index}
-          className="mb-4"
+          className="w-full mb-4 flex justify-end"
         >
           {message.display}
         </div>

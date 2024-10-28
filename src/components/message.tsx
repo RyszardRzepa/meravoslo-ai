@@ -1,7 +1,7 @@
 'use client';
 
-import { IconAI, IconArrowRight, IconUser } from '@/components/ui/icons';
-import { cn, expandChat, scrollToTheChatEnd } from '@/lib/utils';
+import { IconAI, IconArrowRight } from '@/components/ui/icons';
+import { cn, expandChat } from '@/lib/utils';
 import { Button } from "@/components/ui/button";
 import { useActions, useUIState } from "ai/rsc";
 import type { AI } from "@/app/actions/ai";
@@ -11,10 +11,8 @@ import { Role } from "@/lib/types";
 export function UserMessage({ children }: { children: React.ReactNode }) {
   return (
     <div className="group relative sm:flex gap-3 items-start">
-      <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border border-peachDark">
-        <IconUser />
-      </div>
-      <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md p-4 bg-peach border border-peachDark">
+      <div
+        className="w-fit mt-2 sm:mt-0 space-y-2 overflow-hidden rounded-full mx-6 p-4 bg-peach border border-peachDark">
         {children}
       </div>
     </div>
@@ -22,18 +20,18 @@ export function UserMessage({ children }: { children: React.ReactNode }) {
 }
 
 export function BotMessage({
-  children,
-  className,
-}: {
+                             children,
+                             className,
+                           }: {
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn('group relative sm:flex gap-3 items-start', className)}>
-      <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-peach text-primary-foreground">
+    <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border bg-peach text-primary-foreground">
         <IconAI />
       </div>
-      <div className="p-4 mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md bg-peach border border-peachDark">
+      <div className="p-4 mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md border border-peachDark">
         {children}
       </div>
     </div>
@@ -51,14 +49,14 @@ export function BotCard({
     <div className="group relative sm:flex gap-3 items-start">
       <div
         className={cn(
-          'flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border border-peachDark' +
+          'flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border border-peachDark' +
           ' bg-peach text-primary-foreground',
           !showAvatar && 'invisible',
         )}
       >
         <IconAI />
       </div>
-      <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md p-4 bg-peach border border-peachDark">{children}</div>
+      <div className="mt-2 sm:mt-0 flex-1 space-y-2 overflow-hidden rounded-md p-4 border border-peachDark">{children}</div>
     </div>
   );
 }
@@ -81,7 +79,7 @@ export function SuggestionCard({
     <div className="group relative sm:flex gap-3 items-start sm:mt-4">
       <div
         className={cn(
-          'flex ml-8 shrink-0 select-none items-center justify-center rounded-md' +
+          'flex ml-8 shrink-0 select-none items-center justify-center rounded-full' +
           ' text-primary-foreground',
           !showAvatar && 'invisible',
         )}

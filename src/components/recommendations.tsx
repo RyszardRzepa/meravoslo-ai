@@ -9,8 +9,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { useClampText } from "use-clamp-text";
-import { useState } from "react";
 import { Recommendation } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
 
@@ -44,7 +42,7 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
                   {recommendation?.images?.map(image => (
                     <CarouselItem key={image.url}>
                       <article className="w-full relative isolate rounded-xl flex flex-col">
-                        <img src={image?.url} className="h-96 w-full rounded-xl object-cover"/>
+                        <img src={image?.url} className="h-72 w-full rounded-xl object-cover"/>
                       <div
                         className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/10 rounded-xl "></div>
                       <div className="absolute bottom-0 p-2 overflow-hidden text-sm leading-6 text-gray-300">
@@ -54,8 +52,8 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              {recommendation?.images?.length && <CarouselPrevious/>}
-              {recommendation?.images?.length && <CarouselNext/>}
+              {recommendation?.images?.length >=2 &&  <CarouselPrevious/>}
+              {recommendation?.images?.length >=2 && <CarouselNext/>}
             </Carousel>
             )}
             <div className="mb-1 gap-1 flex flex-col">
