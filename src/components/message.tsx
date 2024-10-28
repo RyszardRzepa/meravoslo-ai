@@ -10,7 +10,7 @@ import { Role } from "@/lib/types";
 
 export function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="group relative sm:flex gap-3 items-start">
+    <div className="group relative sm:flex gap-3 items-start justify-end w-full">
       <div
         className="w-fit mt-2 sm:mt-0 space-y-2 overflow-hidden rounded-full mx-6 p-4 bg-peach border border-peachDark">
         {children}
@@ -46,10 +46,11 @@ export function BotCard({
   showAvatar?: boolean;
 }) {
   return (
-    <div className="group relative sm:flex gap-3 items-start">
+    <div className="group relative sm:flex gap-3 items-start w-full">
       <div
         className={cn(
-          'flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border border-peachDark' +
+          'ml-4 sm:ml-0 flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border' +
+          ' border-peachDark' +
           ' bg-peach text-primary-foreground',
           !showAvatar && 'invisible',
         )}

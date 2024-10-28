@@ -78,8 +78,16 @@ export default function Page() {
                 threadId={aktiviteterThreadId}
                 exampleMessages={[
                   {
-                    heading: 'Vi ser etter aktiviteter',
-                    message: 'Vi ser etter aktiviteter',
+                    heading: 'Hva kan vi gjøre gratis?',
+                    message: 'Hva kan vi gjøre gratis?',
+                  },
+                  {
+                    heading: 'Gi meg tips for aktiviteter denne helgen',
+                    message: 'Gi meg tips for aktiviteter denne helgen',
+                  },
+                  {
+                    heading: 'Anbefal en romantisk aktivitet',
+                    message: 'Anbefal en romantisk aktivitet',
                   },
                 ]}
               />

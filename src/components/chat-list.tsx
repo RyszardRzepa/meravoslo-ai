@@ -8,7 +8,7 @@ export function ChatList({ messages }: { messages: any[] }) {
       {messages.map((message, index) => (
         <div
           key={index}
-          className="w-full mb-4 flex justify-end"
+          className="w-full mb-4 flex"
         >
           {message.display}
         </div>

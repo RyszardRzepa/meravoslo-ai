@@ -86,10 +86,6 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
   const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
 
   runAsyncFnWithoutBlocking(async () => {
-    reply.update(<BotCard>
-      {spinner}
-    </BotCard>);
-
     reply.update(
       <BotCard>
         <Skeleton/>
@@ -116,7 +112,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
       stream: true,
-      temperature: 0.7,
+      temperature: 0.5,
       max_tokens: 4000,
       messages: [{
         role: 'system',
@@ -247,7 +243,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
     completion.onFunctionCall('tags_search', async () => {
       reply.update(<BotCard>
-        <Skeleton />
+        <Skeleton/>
       </BotCard>);
 
       console.log("🏷️tags_search")
