@@ -28,8 +28,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
 
   const filteredMessages = messages.filter(message => message.name === name);
 
-  const [messagesContainerRef, messagesEndRef] =
-    useScrollToBottom<HTMLDivElement>();
+  const [containerRef, endRef] = useScrollToBottom<HTMLDivElement>(messages.length);
 
   const handleSubmit = async (value: string) => {
     if (!value.trim() || !uid || isLimitReached) return;
@@ -79,7 +78,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
     <div className="h-dvh">
       <div>
         <div
-          ref={messagesContainerRef}
+          ref={containerRef}
           className="h-full bg-peachLight"
         >
           {filteredMessages.length ? (
@@ -121,7 +120,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
           )}
 
           <div
-            ref={messagesEndRef}
+            ref={endRef}
             className="shrink-0 min-w-[24px] min-h-[24px]"
           />
         </div>
