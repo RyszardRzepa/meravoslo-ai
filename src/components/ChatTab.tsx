@@ -80,7 +80,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
       <div>
         <div
           ref={messagesContainerRef}
-          className="h-full w-dvw overflow-y-scroll bg-peachLight"
+          className="h-full bg-peachLight"
         >
           {filteredMessages.length ? (
             <>

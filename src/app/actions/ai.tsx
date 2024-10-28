@@ -158,7 +158,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           components={{
             a: props => {
               return (
-                <a href={props.href} className="underline text-blue-400">{props.children}</a>
+                <a target="_blank" href={props.href} className="text-blue-400">{props.children}</a>
               );
             },
           }}

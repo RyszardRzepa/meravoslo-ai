@@ -15,30 +15,10 @@ import { Recommendation } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
 
 const CardTitle = ({ text }: { text: string }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  const [ref, { noClamp, clampedText, key }] = useClampText({
-    text,
-    lines: 2,
-    ellipsis: 12.5,
-    expanded
-  });
-
-  const toggleExpanded = () => setExpanded((state) => !state);
-
   return (
-    // @ts-ignore
-    <div ref={ref} key={key}>
+    <div>
       <p>
-        {clampedText}
-        {!noClamp && (
-          <button
-            className="px-1 text-blue-600 dark:text-blue-500 hover:underline"
-            onClick={toggleExpanded}
-          >
-            <p className="">... 👇</p>
-          </button>
-        )}
+        {text}
       </p>
     </div>
   )
@@ -95,7 +75,7 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
               {recommendation?.bookingUrl && recommendation.articleUrl && (
                 <p className="text-sm">Les mer på <span className="italic">
                    <Link
-                     className="font-sm  hover:underline"
+                     className="underline font-sm  hover:underline"
                      target="_blank"
                      rel="noopener noreferrer"
                      href={String(recommendation.articleUrl)}>
