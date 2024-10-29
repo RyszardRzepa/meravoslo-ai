@@ -35,12 +35,9 @@ export async function extractTags(question: string) {
     model: openai('gpt-4o-mini'),
     messages: [
       {
-        "role": "system",
-        "content": systemPrompt
-      },
-      {
-        "role": "user",
-        "content": question
+        role: "user",
+        content: `${systemPrompt}.
+        User question: ${question}`
       },
     ],
     temperature: 0,

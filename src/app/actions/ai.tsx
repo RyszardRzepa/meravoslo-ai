@@ -12,12 +12,10 @@ import remarkGfm from "remark-gfm";
 import { supabase } from "@/lib/supabase/backend";
 import Recommendations from "@/components/recommendations";
 import { recommendationCreator } from "@/lib/agents/recommendationCreator";
-import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAI } from "openai";
 import { Recommendation, Role, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
 import { spinner } from '@/components/spinner';
-import { openai } from "@/lib/models";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -107,7 +105,10 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     ${prompt?.data?.[0]?.text}
     Context: <context> ${context} </context>
     Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
-    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>`;
+    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
+    
+    User question: ${content}
+`;
 
     const completion = runOpenAICompletion(client, {
       model: 'gpt-4o-mini',
@@ -115,11 +116,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       temperature: 0.5,
       max_tokens: 4000,
       messages: [{
-        role: 'system',
-        content: enhancedPrompt,
-      },{
         role: 'user',
-        content: content,
+        content: `${enhancedPrompt}`,
       },
         ...aiState.get().map((info: any) => ({
         role: info.role, content: info.content, name: info.name,

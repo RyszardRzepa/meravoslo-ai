@@ -63,7 +63,7 @@ export async function vectorSearchActivities(message: string) {
   const embedding = await createEmbedding(message);
 
   const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
-    query_embedding: embedding, match_threshold: 0.3, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.4, match_count: 3,
   });
 
   return data.map((doc: Business) => {
