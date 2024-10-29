@@ -97,10 +97,10 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     console.log("filterTags!!!", filterTags)
 
     const enhancedPrompt = `
-    ${prompt?.data?.[0]?.text}
-    Context: <context> ${context} </context>
-    Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterParams>
-    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>
+    ${prompt?.data?.[0]?.text}.
+    Context: <context> ${context} </context>.
+    Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterTags>.
+    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>.
     
     User question: ${content}
 `;
@@ -109,19 +109,17 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       model: 'gpt-4o-mini',
       stream: true,
       temperature: 0.5,
-      max_tokens: 4000,
-      messages: [{
+      max_tokens: 10000,
+      messages: [
+        {
         role: 'user',
         content: `${enhancedPrompt}`,
-      },
-        ...aiState.get().map((info: any) => ({
-        role: info.role, content: info.content, name: info.name,
-      }))],
+      }],
       functions: [
         {
           name: 'vector_search',
-          description: 'Create max three recommendations based on the <context> number of <data>. So if there is' +
-            ' only one <data> in the context, return only one recommendation, etc.',
+          description: 'Create up to three recommendations based on the <context> number of <data>. So if there is' +
+            ' only one data object in the context, return only one recommendation, etc.',
           parameters: z.object({
             title: z.string().describe('Short response to the user in the users language'),
             recommendations: z.array(z.object({
