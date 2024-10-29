@@ -36,7 +36,7 @@ const ConfirmBookingAlert = ({ placeName, open, setOpen, bookingUrl }: { placeNa
         name: TabName.EAT_DRINK },
     ]);
 
-    router.push("/")
+    router.push("/");
 
     await saveBooking({ bookingUrl, businessName: params.get("bn")! });
 

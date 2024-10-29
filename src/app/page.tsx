@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('spise-drikke');
-
   const spiseDrikkeThreadId = useRef(new Date().getTime()).current;
   const aktiviteterThreadId = useRef(new Date().getTime()).current;
 
@@ -30,35 +29,36 @@ export default function Page() {
   }, []);
 
   return (
-    <div id="chat-container" className="bg-background">
-      <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
-        <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
-          <TabsList className="rounded-none grid sm:max-w-72 grid-cols-2 bg-transparent mb-2">
-            <TabsTrigger
-              value={TabName.EAT_DRINK}
-              className="data-[state=active]:text-black data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
-            >
-              Mat og Drikke
-            </TabsTrigger>
-            <TabsTrigger
-              value={TabName.ACTIVITIES}
-              className="data-[state=active]:text-black data-[state=active]:border border border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
-            >
-              Aktiviteter
-            </TabsTrigger>
-          </TabsList>
+    <>
+      <div id="chat-container" className="bg-background">
+        <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
+          <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
+            <TabsList className="rounded-none grid sm:max-w-72 grid-cols-2 bg-transparent mb-2">
+              <TabsTrigger
+                value={TabName.EAT_DRINK}
+                className="data-[state=active]:text-black data-[state=active]:border data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
+              >
+                Mat og Drikke
+              </TabsTrigger>
+              <TabsTrigger
+                value={TabName.ACTIVITIES}
+                className="data-[state=active]:text-black data-[state=active]:border border border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent rounded-full"
+              >
+                Aktiviteter
+              </TabsTrigger>
+            </TabsList>
 
-          <Separator className="bg-gray-200 h-[1.5px]"/>
+            <Separator className="bg-gray-200 h-[1.5px]"/>
 
-          <TabsContent value={TabName.EAT_DRINK}>
+            <TabsContent value={TabName.EAT_DRINK}>
               <ChatTab
                 uid={uid}
                 threadId={spiseDrikkeThreadId}
                 name={TabName.EAT_DRINK}
                 exampleMessages={[
                   {
-                    heading: 'Vi er fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
-                    message: 'Vi er fire venner som vil spise godt og drikke billig i kveld. Hvor bør vi gå?',
+                    heading: 'Vi er fire venner som vil spise godt i kveld. Hvor bør vi gå?',
+                    message: 'Vi er fire venner som vil spise godt i kveld. Hvor bør vi gå?',
                   },
                   {
                     heading: 'Hvor er beste indisk i Oslo?',
@@ -70,8 +70,8 @@ export default function Page() {
                   },
                 ]}
               />
-          </TabsContent>
-          <TabsContent value={TabName.ACTIVITIES}>
+            </TabsContent>
+            <TabsContent value={TabName.ACTIVITIES}>
               <ChatTab
                 uid={uid}
                 name={TabName.ACTIVITIES}
@@ -91,9 +91,10 @@ export default function Page() {
                   },
                 ]}
               />
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
