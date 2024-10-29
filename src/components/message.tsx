@@ -10,11 +10,11 @@ import { Role } from "@/lib/types";
 
 export function UserMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="group relative sm:flex gap-3 items-start justify-end w-full">
-      <div
-        className="w-fit mt-2 sm:mt-0 space-y-2 overflow-hidden rounded-full mx-6 p-4 bg-peach border border-peachDark">
-        {children}
-      </div>
+    <div className="group relative sm:flex gap-3 items-start justify-end w-full ml-4">
+        <div
+          className="w-fit mt-2 sm:mt-0 space-y-2 overflow-hidden rounded-full mx-6 p-4 bg-peach border border-peachDark justify-end ml-auto">
+          {children}
+        </div>
     </div>
   );
 }

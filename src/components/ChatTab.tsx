@@ -9,6 +9,7 @@ import ChatInput from '@/components/ChatInput';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useScrollToBottom } from "@/lib/hooks/use-scroll-to-bottom";
+import { TabName } from "@/lib/types";
 
 interface ChatTabProps {
   uid: string | null;
@@ -29,6 +30,9 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
   const filteredMessages = messages.filter(message => message.name === name);
 
   const [containerRef, endRef] = useScrollToBottom<HTMLDivElement>(messages.length);
+  const emptyScreenTitle = TabName.ACTIVITIES === name ?
+    'Spør meg om anbefalinger for aktiviteter i Oslo!  Basert på innholdet vårt vil jeg gi deg de beste tipsene.' :
+    'Spør meg om anbefalinger for mat og drikke i Oslo!  Basert på innholdet vårt vil jeg svare deg så godt jeg kan.';
 
   const handleSubmit = async (value: string) => {
     if (!value.trim() || !uid || isLimitReached) return;
@@ -87,6 +91,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
             </>
           ) : (
             <EmptyScreen
+              title={emptyScreenTitle}
               exampleMessages={exampleMessages}
               submitMessage={async message => {
                 const id = Date.now();

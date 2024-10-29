@@ -5,9 +5,11 @@ import { IconArrowRight } from '@/components/ui/icons';
 export function EmptyScreen({
                               exampleMessages,
                               submitMessage,
+  title
                             }: {
   submitMessage: (message: string) => void;
   exampleMessages: { heading: string; message: string }[];
+  title: string
 }) {
   return (
     <div className="">
@@ -50,7 +52,7 @@ export function EmptyScreen({
         </div>
 
         <h1 className="mb-6 text-lg font-semibold">
-          Spør meg om anbefalinger i Oslo! Basert på innholdet vårt vil jeg svare deg så godt jeg kan.
+          {title}
         </h1>
         <div className="mt-4 flex flex-col items-start space-y-2 mb-4">
           <label className="text-gray-600 text-sm">Forslag</label>
