@@ -27,11 +27,6 @@ async function submitBookingState(restaurantName: string) {
 
   const aiState = getMutableAIState<typeof AI>();
 
-  aiState.update([...aiState.get(), {
-    role: 'system',
-    content: 'Starting the booking process...',
-  }]);
-
   const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
 
   reply.done(<BotCard>

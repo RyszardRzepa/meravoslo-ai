@@ -118,36 +118,36 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
               }}
             />
           )}
-
-          <div
-            ref={endRef}
-            className="shrink-0 min-w-[24px] min-h-[24px]"
-          />
         </div>
+        <div
+          id="chat-list-end"
+          ref={endRef}
+          className="shrink-0 min-w-[24px] min-h-[24px]"
+        />
         {isLimitReached ? (
           <div
             className="bg-peachLight fixed inset-x-0 bottom-0 w-full ">
             <div className="text-center mb-6">
               <div className="mb-6">
-            <Separator/>
+                <Separator/>
+              </div>
+              <p className="mb-4">Denne samtalen har nådd sin grense.</p>
+              <Button
+                onClick={handleNewChat}
+              >
+                Start ny chat
+              </Button>
+            </div>
           </div>
-          <p className="mb-4">Denne samtalen har nådd sin grense.</p>
-          <Button
-            onClick={handleNewChat}
-          >
-            Start ny chat
-          </Button>
-        </div>
-          </div>
-      ) : (
-        <ChatInput
-          onSubmit={handleSubmit}
-          formRef={formRef}
-          inputRef={inputRef}
-          onKeyDown={onKeyDown}
-          disabled={isLimitReached}
-        />
-      )}
+        ) : (
+          <ChatInput
+            onSubmit={handleSubmit}
+            formRef={formRef}
+            inputRef={inputRef}
+            onKeyDown={onKeyDown}
+            disabled={isLimitReached}
+          />
+        )}
       </div>
     </div>
   );

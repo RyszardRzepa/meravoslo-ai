@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import { saveBooking } from "@/app/actions/db";
 import { TabName } from "@/lib/types";
 
-const ConfirmBookingAlert = ({ open, setOpen, bookingUrl }: { open: boolean, setOpen: (val: boolean) => void, bookingUrl: string }) => {
+const ConfirmBookingAlert = ({ placeName, open, setOpen, bookingUrl }: { placeName: string, open: boolean, setOpen: (val: boolean) => void, bookingUrl: string }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter()
   const [, setMessages] = useUIState<typeof AI>();
@@ -38,15 +38,14 @@ const ConfirmBookingAlert = ({ open, setOpen, bookingUrl }: { open: boolean, set
 
     router.push("/")
 
+    await saveBooking({ bookingUrl, businessName: params.get("bn")! });
+
     setTimeout(() => {
-      const element = document.getElementById('chat-list');
+      const element = document.getElementById('chat-list-end');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }
     }, 500)
-
-
-    await saveBooking({ bookingUrl, businessName: params.get("bn")! });
 
     setLoading(false);
     setOpen(false);
@@ -73,6 +72,7 @@ export default function BookingPage() {
 
   const router = useRouter();
   const bookingUrl = params.get("bu") ? params.get("bu")! : "https://booking.gastroplanner.no/maximus/t";
+  const placeName = params.get("bn")
 
   return (
     <div className="flex flex-col">
@@ -80,7 +80,7 @@ export default function BookingPage() {
 
       <div className="pb-4">
         <div className="pb-2">
-          <p className="text-lg semi-bold">Bestill bord på {params.get("bn")}</p>
+          <p className="text-lg semi-bold">Bestill bord på {placeName}</p>
         </div>
 
         <div
@@ -104,7 +104,7 @@ export default function BookingPage() {
           </Button>
         </div>
 
-        <ConfirmBookingAlert open={alertOpen} setOpen={setAlertOpen} bookingUrl={bookingUrl}/>
+        <ConfirmBookingAlert placeName={placeName!} open={alertOpen} setOpen={setAlertOpen} bookingUrl={bookingUrl}/>
       </div>
     </div>
   )
