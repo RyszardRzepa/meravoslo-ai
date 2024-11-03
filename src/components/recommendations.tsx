@@ -11,6 +11,13 @@ import {
 } from '@/components/ui/carousel';
 import { Recommendation } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
+import {
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTrigger
+} from "@/components/ui/sheet";
+import { useState } from "react";
 
 const CardTitle = ({ text }: { text: string }) => {
   return (
@@ -24,6 +31,7 @@ const CardTitle = ({ text }: { text: string }) => {
 
 function Recommendations({ data }: {  data: Recommendation[] }) {
   const router = useRouter();
+  const [selectedUrl, setSelectedUrl] = useState<string>("https://meravoslo.no/chat-start");
 
   const sortedData = [...data].sort((a, b) => {
     if (a.images?.length && !b.images?.length) return -1;
@@ -71,16 +79,14 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
                 </span>
               </p>
               {recommendation?.bookingUrl && recommendation.articleUrl && (
-                <p className="text-sm">Les mer på <span className="italic">
-                   <Link
-                     className="underline font-sm  hover:underline"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     href={String(recommendation.articleUrl)}>
-                      {recommendation.articleTitle}
-                   </Link>
-                </span>
-                </p>)}
+                  <SheetTrigger
+                    asChild
+                    onClick={() => {
+                      setSelectedUrl(recommendation.articleUrl);
+                    }}>
+                    <p className="text-sm cursor-pointer">Les mer på <span className="underline"> {recommendation.articleTitle}</span></p>
+                  </SheetTrigger>
+              )}
             </div>
             {recommendation?.bookingUrl ?
               <form
@@ -94,22 +100,28 @@ function Recommendations({ data }: {  data: Recommendation[] }) {
                   Bestill bord
                 </Button>
               </form> :
-              <p>Les mer på <span className="italic">
-                   <Link
-                     className="text-blue-600 dark:text-blue-500 hover:underline"
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     href={String(recommendation.articleUrl)}>
-                  {recommendation.articleTitle}
-                   </Link>
-                </span></p>
+              <SheetTrigger
+                asChild
+                onClick={() => {
+                  setSelectedUrl(recommendation.articleUrl);
+                }}>
+                <p className="">Les mer på <span className="text-blue-600 dark:text-blue-500 hover:underline"> {recommendation.articleTitle}</span></p>
+              </SheetTrigger>
             }
             {index < data.length - 1 && (
-              <Separator className="my-4" />
+              <Separator className="my-4"/>
             )}
           </div>
 
         ))}
+        <SheetContent side="bottom" className="bg-white h-[97dvh] p-0 rounded-lg">
+          <SheetHeader className="px-6 py-3 bg-gray-200 rounded-t-lg">
+            <SheetDescription>
+              Meravoslo AI
+            </SheetDescription>
+          </SheetHeader>
+          <iframe src={selectedUrl} className="w-full h-full"/>
+        </SheetContent>
       </div>
   );
 }

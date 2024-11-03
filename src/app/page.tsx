@@ -13,6 +13,7 @@ export default function Page() {
   const spiseDrikkeThreadId = useRef(new Date().getTime()).current;
   const aktiviteterThreadId = useRef(new Date().getTime()).current;
 
+
   useEffect(() => {
     const login = async () => {
       const { data } = await supabaseFrontent.auth.getSession();
