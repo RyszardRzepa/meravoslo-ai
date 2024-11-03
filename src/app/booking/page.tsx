@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { saveBooking } from "@/app/actions/db";
 import { TabName } from "@/lib/types";
+import { BotMessage } from "@/components/message";
 
 const ConfirmBookingAlert = ({ placeName, open, setOpen, bookingUrl }: { placeName: string, open: boolean, setOpen: (val: boolean) => void, bookingUrl: string }) => {
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,10 @@ const ConfirmBookingAlert = ({ placeName, open, setOpen, bookingUrl }: { placeNa
     setMessages(currentMessages => [
       ...currentMessages,
       { ...responseMessage,
-        name: TabName.EAT_DRINK },
+        name: TabName.EAT_DRINK,
+        id: Date.now(),
+        display: <BotMessage>{responseMessage?.display}</BotMessage>
+      },
     ]);
 
     router.push("/");
