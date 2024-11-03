@@ -16,6 +16,7 @@ import { OpenAI } from "openai";
 import { Recommendation, Role, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
 import { spinner } from '@/components/spinner';
+import { handleGlobalError } from "@/lib/handleGlobalError";
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,22 +26,27 @@ const client = new OpenAI({
 async function submitBookingState(restaurantName: string) {
   'use server';
 
-  const aiState = getMutableAIState<typeof AI>();
+  try {
+    const aiState = getMutableAIState<typeof AI>();
 
-  const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
+    const reply = createStreamableUI(<BotMessage>{spinner}</BotMessage>);
 
-  reply.done(<BotCard>
-    <div>Takk for Booking hos {restaurantName} 😋 Er det noe
-      annet du lurer på?</div>
-  </BotCard>);
+    reply.done(<BotCard>
+      <div>Takk for Booking hos {restaurantName} 😋 Er det noe
+        annet du lurer på?
+      </div>
+    </BotCard>);
 
-  aiState.done([...aiState.get(), {
-    role: 'system', name: 'startBookingProcess', content: 'Starting the booking process...',
-  }]);
+    aiState.done([...aiState.get(), {
+      role: 'system', name: 'startBookingProcess', content: 'Starting the booking process...',
+    }]);
 
-  return {
-    id: Date.now(), display: reply.value,
-  };
+    return {
+      id: Date.now(), display: reply.value,
+    };
+  } catch (error) {
+    handleGlobalError(error);
+  }
 }
 
 type UserMessage = {
@@ -60,43 +66,44 @@ async function resetAIState() {
 async function submitUserMessage({ content, uid, threadId, name }: UserMessage) {
   'use server';
 
-  // Save user question to db
-  saveMessage({ message: content, role: Role.User, uid: uid!, threadId });
+  try {
+    // Save user question to db
+    saveMessage({ message: content, role: Role.User, uid: uid!, threadId });
 
-  const aiState = getMutableAIState<typeof AI>();
+    const aiState = getMutableAIState<typeof AI>();
 
-  //Since we are passing data from different tabs UI, we need to filter out the messages that are not from the same tab
-  const aiStateFiltered = aiState.get().filter((info: any) => info.name === name);
+    //Since we are passing data from different tabs UI, we need to filter out the messages that are not from the same tab
+    const aiStateFiltered = aiState.get().filter((info: any) => info.name === name);
 
-  aiState.update([
-    ...aiStateFiltered,
-    {
-      role: 'user',
-      content,
-      name,
-  }]);
+    aiState.update([
+      ...aiStateFiltered,
+      {
+        role: 'user',
+        content,
+        name,
+      }]);
 
-  const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
+    const reply = createStreamableUI(<BotMessage className="items-center">{spinner}</BotMessage>);
 
-  runAsyncFnWithoutBlocking(async () => {
-    reply.update(
-      <BotCard>
-        <Skeleton/>
-      </BotCard>
-    );
+    runAsyncFnWithoutBlocking(async () => {
+      reply.update(
+        <BotCard>
+          <Skeleton/>
+        </BotCard>
+      );
 
-    const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
-    const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
+      const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
+      const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
 
-    const [context, filterTags, prompt] = await Promise.all([
-      vectorSearch(content),
-      extractTags(content),
-      supabase.from("prompts").select("text").eq("name", promptName)
-    ]);
+      const [context, filterTags, prompt] = await Promise.all([
+        vectorSearch(content),
+        extractTags(content),
+        supabase.from("prompts").select("text").eq("name", promptName)
+      ]);
 
-    console.log("filterTags!!!", filterTags)
+      console.log("filterTags!!!", filterTags)
 
-    const enhancedPrompt = `
+      const enhancedPrompt = `
     ${prompt?.data?.[0]?.text}.
     Context: <context> ${context} </context>.
     Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterTags>.
@@ -105,144 +112,147 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     User question: ${content}
 `;
 
-    const completion = runOpenAICompletion(client, {
-      model: 'gpt-4o',
-      stream: true,
-      temperature: 0.5,
-      max_tokens: 10000,
-      messages: [
-        {
-        role: 'user',
-        content: `${enhancedPrompt}`,
-      }],
-      functions: [
-        {
-          name: 'vector_search',
-          description: 'Create up to three recommendations based on the <context> number of <data>. So if there is' +
-            ' only one data object in the context, return only one recommendation, etc.',
-          parameters: z.object({
-            title: z.string().describe('Short response to the user in the users language'),
-            recommendations: z.array(z.object({
-              businessId: z.string().describe('The value of <business_id>'),
-              summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
-            })),
-          }),
-        },
-        {
-          name: 'tags_search',
-          description: 'Return only number "1"',
-          parameters: z.object({
-            done: z.string().describe('number "1"'),
-          }),
+      const completion = runOpenAICompletion(client, {
+        model: 'gpt-4o',
+        stream: true,
+        temperature: 0.5,
+        max_tokens: 10000,
+        messages: [
+          {
+            role: 'user',
+            content: `${enhancedPrompt}`,
+          }],
+        functions: [
+          {
+            name: 'vector_search',
+            description: 'Create up to three recommendations based on the <context> number of <data>. So if there is' +
+              ' only one data object in the context, return only one recommendation, etc.',
+            parameters: z.object({
+              title: z.string().describe('Short response to the user in the users language'),
+              recommendations: z.array(z.object({
+                businessId: z.string().describe('The value of <business_id>'),
+                summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
+              })),
+            }),
+          },
+          {
+            name: 'tags_search',
+            description: 'Return only number "1"',
+            parameters: z.object({
+              done: z.string().describe('number "1"'),
+            }),
+          }
+        ],
+      });
+
+      completion.onTextContent((content: string, isFinal: boolean) => {
+        const MarkdownWithLink = ({ content }: { content: string }) => {
+          return <Markdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              a: props => {
+                return (
+                  <a target="_blank" href={props.href} className="text-blue-400">{props.children}</a>
+                );
+              },
+            }}
+          >
+            {content}
+          </Markdown>;
+        };
+
+        reply.update(<BotMessage>
+          <MarkdownWithLink content={content}/>
+        </BotMessage>);
+        if (isFinal) {
+          saveMessage({
+            message: content,
+            role: Role.Assistant,
+            completionType: 'markdown',
+            userQuestionTags: filterTags,
+            uid: uid!,
+            threadId
+          });
+          reply.done();
+          aiState.done([...aiState.get(), { role: 'assistant', content }]);
         }
-      ],
-    });
+      });
 
-    completion.onTextContent((content: string, isFinal: boolean) => {
-      const MarkdownWithLink = ({ content }: { content: string }) => {
-        return <Markdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            a: props => {
-              return (
-                <a target="_blank" href={props.href} className="text-blue-400">{props.children}</a>
-              );
-            },
-          }}
-        >
-          {content}
-        </Markdown>;
-      };
+      completion.onFunctionCall('vector_search', async ({ recommendations, title }) => {
+        reply.update(<BotCard>
+          <Skeleton/>
+        </BotCard>);
 
-      reply.update(<BotMessage>
-        <MarkdownWithLink content={content} />
-      </BotMessage>);
-      if (isFinal) {
+        console.log("🎯vector_search")
+        const tableName = name === TabName.ACTIVITIES ? "activities" : "places";
+        const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl, articleTitle";
+        const {
+          data,
+          error
+        } = await supabase.from(tableName).select(select).in('id', recommendations.map((r) => Number(r.businessId)));
+
+        const recommendationData = recommendations.map((aiRec) => {
+          const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
+
+          return {
+            articleTitle: business?.articleTitle,
+            summary: aiRec.summary,
+            businessName: business?.name,
+            address: business?.address,
+            mapsUrl: business?.mapsUrl,
+            images: business?.images,
+            bookingUrl: business?.bookingUrl,
+            district: business?.district,
+            openingHours: business?.openingHours,
+            articleUrl: business?.articleUrl,
+          }
+        });
+
+        if (!recommendationData) {
+          reply.done(
+            <div className="flex flex-col gap-4">
+              <BotCard>
+                <p>Beklager, vi fant ingen anbefalinger til deg.</p>
+              </BotCard>
+            </div>
+          )
+        } else {
+          reply.done(
+            <div className="flex flex-col gap-4">
+              <BotCard>
+                <Recommendations data={recommendationData}/>
+              </BotCard>
+            </div>
+          );
+        }
+
         saveMessage({
-          message: content,
+          jsonResponse: recommendationData,
           role: Role.Assistant,
-          completionType: 'markdown',
+          completionType: 'vector_search',
           userQuestionTags: filterTags,
           uid: uid!,
           threadId
         });
-        reply.done();
-        aiState.done([...aiState.get(), { role: 'assistant', content }]);
-      }
-    });
 
-    completion.onFunctionCall('vector_search', async ({ recommendations, title }) => {
-      reply.update(<BotCard>
-        <Skeleton />
-      </BotCard>);
-
-      console.log("🎯vector_search")
-      const tableName = name === TabName.ACTIVITIES ? "activities" : "places";
-      const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl, articleTitle";
-      const { data, error } = await supabase.from(tableName).select(select).in('id', recommendations.map((r) => Number(r.businessId)));
-
-      const recommendationData = recommendations.map((aiRec) => {
-        const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
-
-        return {
-          articleTitle: business?.articleTitle,
-          summary: aiRec.summary,
-          businessName: business?.name,
-          address: business?.address,
-          mapsUrl: business?.mapsUrl,
-          images: business?.images,
-          bookingUrl: business?.bookingUrl,
-          district: business?.district,
-          openingHours: business?.openingHours,
-          articleUrl: business?.articleUrl,
-        }
+        aiState.done([...aiState.get(), {
+          role: 'function',
+          content: `Assistant responded with these recommendations: ${JSON.stringify(recommendations)}`,
+          name,
+        }]);
       });
 
-      if (!recommendationData) {
-        reply.done(
-          <div className="flex flex-col gap-4">
-            <BotCard>
-              <p>Beklager, vi fant ingen anbefalinger til deg.</p>
-            </BotCard>
-          </div>
-        )
-      } else {
-        reply.done(
-          <div className="flex flex-col gap-4">
-            <BotCard>
-              <Recommendations data={recommendationData}/>
-            </BotCard>
-          </div>
-        );
-      }
+      completion.onFunctionCall('tags_search', async () => {
+        reply.update(<BotCard>
+          <Skeleton/>
+        </BotCard>);
 
-      saveMessage({
-        jsonResponse: recommendationData,
-        role: Role.Assistant,
-        completionType: 'vector_search',
-        userQuestionTags: filterTags,
-        uid: uid!,
-        threadId
-      });
+        console.log("🏷️tags_search")
+        const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
 
-      aiState.done([...aiState.get(), {
-        role: 'function',
-        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendations)}`,
-        name,
-      }]);
-    });
-
-    completion.onFunctionCall('tags_search', async () => {
-      reply.update(<BotCard>
-        <Skeleton/>
-      </BotCard>);
-
-      console.log("🏷️tags_search")
-      const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
-
-      console.log("response", response.length)
-      const context = response.map((item) => {
-        return `<restaurant>
+        console.log("response", response.length)
+        const context = response.map((item) => {
+          return `<restaurant>
                  Restaurant name: ${item.name}.
                  Tags: ${item.tags}. 
                  Matched tags: ${item.matched_tags}.
@@ -250,67 +260,73 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
                  About restaurant: ${item.articleTitle}. \n ${item.articleContent}
                  <business_id> ${item.id} </business_id>
                  </restaurant>.\n`
-                      }).join(", ")
+        }).join(", ")
 
-      const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiStateFiltered)])
+        const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiStateFiltered)])
 
-      console.log("recommendationsResponse length", recommendationsResponse?.recommendations?.length)
+        console.log("recommendationsResponse length", recommendationsResponse?.recommendations?.length)
 
-      const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
-        const business = response.find((r) => r.id === aiRec.businessId);
+        const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
+          const business = response.find((r) => r.id === aiRec.businessId);
 
-        return {
-          articleTitle: business?.articleTitle,
-          businessName: business?.name,
-          summary: aiRec.content,
-          address: business?.address,
-          mapsUrl: business?.mapsUrl,
-          images: business?.images,
-          bookingUrl: business?.bookingUrl,
-          district: business?.district,
-          openingHours: business?.openingHours,
-          articleUrl: business?.articleUrl,
-        } as Recommendation
+          return {
+            articleTitle: business?.articleTitle,
+            businessName: business?.name,
+            summary: aiRec.content,
+            address: business?.address,
+            mapsUrl: business?.mapsUrl,
+            images: business?.images,
+            bookingUrl: business?.bookingUrl,
+            district: business?.district,
+            openingHours: business?.openingHours,
+            articleUrl: business?.articleUrl,
+          } as Recommendation
+        });
+
+        saveMessage({
+          jsonResponse: recommendationData,
+          role: Role.Assistant,
+          completionType: 'tags_search',
+          userQuestionTags: filterTags,
+          uid: uid!,
+          threadId
+        })
+
+        if (!recommendationData) {
+          reply.done(
+            <div className="flex flex-col gap-4">
+              <BotCard>
+                <p>Beklager, vi fant ingen anbefalinger til deg.</p>
+              </BotCard>
+            </div>
+          )
+        } else {
+          reply.done(
+            <div className="flex flex-col gap-4">
+              <BotCard>
+                <Recommendations data={recommendationData}/>
+              </BotCard>
+            </div>
+          );
+        }
+
+        aiState.done([...aiState.get(), {
+          role: 'function',
+          content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`,
+          name,
+        }]);
       });
-
-      saveMessage({
-        jsonResponse: recommendationData,
-        role: Role.Assistant,
-        completionType: 'tags_search',
-        userQuestionTags: filterTags,
-        uid: uid!,
-        threadId
-      })
-
-      if (!recommendationData) {
-        reply.done(
-          <div className="flex flex-col gap-4">
-            <BotCard>
-              <p>Beklager, vi fant ingen anbefalinger til deg.</p>
-            </BotCard>
-          </div>
-        )
-      } else {
-        reply.done(
-          <div className="flex flex-col gap-4">
-            <BotCard>
-              <Recommendations data={recommendationData}/>
-            </BotCard>
-          </div>
-        );
-      }
-
-      aiState.done([...aiState.get(), {
-        role: 'function',
-        content: `Assistant responded with these recommendations: ${JSON.stringify(recommendationsResponse)}`,
-        name,
-      }]);
     });
-  });
 
-  return {
-    id: Date.now(), display: reply.value, name
-  };
+    return {
+      id: Date.now(), display: reply.value, name
+    };
+  } catch (error) {
+    handleGlobalError(error);
+    return {
+      id: Date.now(), display: "Noe gikk galt. vennligst prøv igjen", name
+    };
+  }
 }
 
 // Define necessary types and create the AI.
