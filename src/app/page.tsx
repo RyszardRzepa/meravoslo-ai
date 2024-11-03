@@ -31,7 +31,8 @@ export default function Page() {
   return (
     <>
       <div id="chat-container" className="bg-background">
-        <div className="sticky top-0 z-10 bg-background border-b border-b-peachDark">
+        <div className="fixed top-0 left-0 right-0 z-10 bg-background border-b border-b-peachDark">
+
           <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
             <TabsList className="rounded-none grid sm:max-w-72 grid-cols-2 bg-transparent mb-2">
               <TabsTrigger
@@ -50,7 +51,7 @@ export default function Page() {
 
             <Separator className="bg-gray-200 h-[1.5px]"/>
 
-            <TabsContent value={TabName.EAT_DRINK}>
+            <TabsContent className="overflow-y-scroll" value={TabName.EAT_DRINK}>
               <ChatTab
                 uid={uid}
                 threadId={spiseDrikkeThreadId}
