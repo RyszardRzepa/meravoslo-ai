@@ -127,7 +127,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
         <div
           id="chat-list-end"
           ref={endRef}
-          className="shrink-0 min-w-[24px] min-h-[24px]"
+          className="shrink-0 min-w-[48px] min-h-[48px]"
         />
         {isLimitReached ? (
           <div

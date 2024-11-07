@@ -73,7 +73,7 @@ export default function Page() {
                 ]}
               />
             </TabsContent>
-            <TabsContent value={TabName.ACTIVITIES}>
+            <TabsContent className="overflow-y-scroll" value={TabName.ACTIVITIES}>
               <ChatTab
                 uid={uid}
                 name={TabName.ACTIVITIES}

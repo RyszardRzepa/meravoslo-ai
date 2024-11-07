@@ -88,7 +88,7 @@ export default function BookingPage() {
         </div>
 
         <div
-          className="h-96 flex items-center justify-center my-2 border bg-peach text-primary rounded-md">
+          className="h-[70vh] flex items-center justify-center my-2 border bg-peach text-primary rounded-md">
           <iframe
             className="border rounded w-full h-full"
             src={bookingUrl}
