@@ -37,7 +37,7 @@ export async function vectorSearchPlaces(message: string) {
   const embedding = await createEmbedding(message);
 
   const { error: matchError, data } = await supabase.rpc('vector_search_places', {
-    query_embedding: embedding, match_threshold: 0.3, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.5, match_count: 3,
   });
 
   // filter out the documents that have the same restaurant id
@@ -63,9 +63,10 @@ export async function vectorSearchActivities(message: string) {
   const embedding = await createEmbedding(message);
 
   const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
-    query_embedding: embedding, match_threshold: 0.4, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.5, match_count: 3,
   });
 
+  console.log("data", data)
   return data.map((doc: Business) => {
     return `<activity>
                 Activity Name: ${doc.name}. 

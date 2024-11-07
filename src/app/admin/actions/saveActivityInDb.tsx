@@ -28,13 +28,8 @@ const saveActivityInDb = async (data: Business[]) => {
     }
 
     if (data.length > 0) {
-      // const { error } = await supabase.from('activities').update({
-      //   embedding,
-      //   ...record
-      // }).eq('id', data?.[0].id)
-      // if (error) {
-      //   throw error;
-      // }
+      console.log("update")
+      await updateActivityInDb(record);
     } else {
       console.log("record", record)
       const { error, data } = await supabase.from('activities').insert({

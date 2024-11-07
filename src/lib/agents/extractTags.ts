@@ -24,11 +24,13 @@ export async function extractTags(question: string) {
     supabase.from("prompts").select("text").eq("name", "extractTags")
   ]);
 
-  const systemPrompt = `
+  const promptContent = `
   ${prompt?.data?.[0].text}
   Available tags:
   [${tags?.data?.map(t => t.name).join(", ")}]
-  Current season: ${getCurrentSeason()}
+  Current season: ${getCurrentSeason()}.
+  
+  User question: ${question}
   `
 
   const { text } = await generateText({
@@ -36,8 +38,7 @@ export async function extractTags(question: string) {
     messages: [
       {
         role: "user",
-        content: `${systemPrompt}.
-        User question: ${question}`
+        content: `${promptContent}.`
       },
     ],
     temperature: 0,

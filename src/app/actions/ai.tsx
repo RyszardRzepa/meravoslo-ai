@@ -115,7 +115,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       const completion = runOpenAICompletion(client, {
         model: 'gpt-4o',
         stream: true,
-        temperature: 0.5,
+        temperature: 0.3,
         max_tokens: 10000,
         messages: [
           {

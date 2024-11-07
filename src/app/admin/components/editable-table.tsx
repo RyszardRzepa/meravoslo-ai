@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useToast } from "@/components/ui/use-toast";
+
 
 import { MultiSelect } from "@/components/multi-select";
 import { Textarea } from "@/components/ui/textarea";
@@ -240,6 +242,8 @@ const EditableTable = ({ name, data: propsData }: { name: string, data: Business
   const [isEditingImage, setIsEditingImage] = useState<boolean>(false);
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
 
+  const { toast } = useToast();
+
   const handleAddRecord = (newRecord: Business) => {
     setData([...data, newRecord]);
   };
@@ -253,8 +257,18 @@ const EditableTable = ({ name, data: propsData }: { name: string, data: Business
       } else {
         await savePlacesInDb([rowData]);
       }
-      console.log("Row saved successfully");
+      toast({
+        title: "Success",
+        description: "Record updated successfully",
+        duration: 3000,
+      });
     } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update record",
+        variant: "destructive",
+        duration: 3000,
+      });
       console.error("Error saving row:", error);
     }
     setLoading(false);
