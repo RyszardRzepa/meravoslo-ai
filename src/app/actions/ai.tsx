@@ -1,10 +1,16 @@
 import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState, getAIState } from 'ai/rsc';
 import { BotCard, BotMessage } from '@/components/message';
-
+import { Embedding } from 'ai';
 import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
 import { Skeleton } from '@/components/skeleton';
-import { searchActivitiesByTags, searchPlacesByTags, vectorSearchActivities, vectorSearchPlaces } from "@/lib/db";
+import {
+  createEmbedding,
+  searchActivitiesByTags,
+  searchPlacesByTags,
+  vectorSearchActivities,
+  vectorSearchPlaces
+} from "@/lib/db";
 import { extractTags } from "@/lib/agents/extractTags";
 import { z } from "zod";
 import Markdown from "react-markdown";
@@ -63,6 +69,63 @@ async function resetAIState() {
   aiState.done(initialAIState);
 }
 
+const localPrompt = `Respond to food and drink, activities, things-to-do related questions, utilizing the correct function call or providing relevant context-based responses for recommendations and insights on Norwegian culture. Address follow-up queries effectively using context and chat history.
+
+## Guidelines
+
+- **Question Handling**:
+  - Respond with up to three recommendation.
+  - A follow-up question is any additional inquiry related to a previous answer, often requesting more details or clarification. If a follow-up question is asked, respond using the context from earlier responses, without calling tools \`tags_search\` or \`vector_search\`.
+  - Only respond to questions related to food and drink, activities and what to do. If the question is not related to food or drink, respond "Jeg kan dessverre bare gi anbefalinger om mat og drikke og aktiviteter i Oslo. Hvis du har spørsmål om mat og drikke og aktiviteter, er jeg her for å hjelpe"
+
+- **Tool Calls**:
+  - Use \`tags_search\` if \`filterTags=true\`, example  filterTags=true and the question is not a follow-up.
+  - Use \`vector_search\` if \`filterTags=false\` is empty, example  filterTags=false and the question is not a follow-up.
+
+- **Handling Follow-up Questions**:
+  - Depending on the conversation history, address follow-up questions by referencing earlier suggestions for continuity.
+
+- **Response Structure**:
+  - Use \`<context>\` tone for non-food or drink-related questions, focusing on the available context.
+  - Make sure responses are precise and answer the \`<userQuestion>\` directly.
+
+- **Details and Formatting**:
+  - Use markdown for styling any additional content like addresses and links.
+  - Provide one recommendation per inquiry.
+  - Direct users to relevant websites for additional information.
+  - Avoid ending responses with questions.
+
+## Response Format
+
+- Use markdown for formatting.
+- Respond in the user's preferred language.
+- Include images only if specifically requested.
+
+## Examples
+
+### Example 1
+**Input:** "Can you suggest a romantic restaurant in Oslo for dinner?"
+**Output:** 
+- "For a romantic dinner in Oslo, you might consider [Place Name]. It's known for its cozy atmosphere and exquisite cuisine. Check their menu [here] for more details."
+
+### Example 2
+**Input:** "Jeg vil kjøpe bolig?"
+**Output:** 
+- "Jeg kan dessverre bare gi anbefalinger om mat og drikke og aktiviteter i Oslo. Hvis du har spørsmål om mat og drikke og aktiviteter, er jeg her for å hjelpe!"
+
+### Example 3
+**Input:** "Do you have more information on the restaurant you suggested earlier?"
+**Output:** 
+- "Certainly! The restaurant [Place Name] offers a diverse menu and an inviting atmosphere. You can make reservations via their website [here]."
+
+## Notes
+
+- Use search functions correctly according to the guidelines, and manage follow-up inquiries using chat history.
+- Keep responses courteous and informative, with a focus on food, drink, and cultural topics.
+
+## Important
+Only respond to questions related to food and drink and activities.". `
+
 async function submitUserMessage({ content, uid, threadId, name }: UserMessage) {
   'use server';
 
@@ -92,28 +155,36 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
         </BotCard>
       );
 
-      const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
-      const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
+      // const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
 
-      const [context, filterTags, prompt] = await Promise.all([
-        vectorSearch(content),
+      const [filterTags, prompt] = await Promise.all([
         extractTags(content),
-        supabase.from("prompts").select("text").eq("name", promptName)
+        // supabase.from("prompts").select("text").eq("name", promptName)
       ]);
+
+      let context = "";
 
       console.log("filterTags!!!", filterTags)
 
+      if (filterTags?.length === 0) {
+        const embedding = await createEmbedding(content);
+        const [activitySearch, placeSearch] = await Promise.all([vectorSearchActivities(embedding), vectorSearchPlaces(embedding)]);
+        context = `Activity context: ${activitySearch}.
+        Place context: ${placeSearch}.
+        `
+      }
+
       const enhancedPrompt = `
-    ${prompt?.data?.[0]?.text}.
-    Context: <context> ${context} </context>.
-    Filter tags: <filterTags> ${JSON.stringify(filterTags)} </filterTags>.
-    Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>.
-    
-    User question: ${content}
-`;
+      ${localPrompt}.
+      
+      Context: <context> ${context} </context>.
+      Filter tags: filterTags=${filterTags.length > 0 ? "true" : "false"}.
+      Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>.
+      
+      User question: ${content}`;
 
       const completion = runOpenAICompletion(client, {
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         stream: true,
         temperature: 0.3,
         max_tokens: 10000,
@@ -125,19 +196,19 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
         functions: [
           {
             name: 'vector_search',
-            description: 'Create up to three recommendations based on the <context> number of <data>. So if there is' +
-              ' only one data object in the context, return only one recommendation, etc.',
+            description: 'Create up to three recommendations based on the <context> in system message',
             parameters: z.object({
               title: z.string().describe('Short response to the user in the users language'),
               recommendations: z.array(z.object({
-                businessId: z.string().describe('The value of <business_id>'),
+                businessId: z.string().describe('The value of <places_id>'),
                 summary: z.string().describe('Short summary of the recommended place in the user language. Max 4 sentences.'),
+                tableName: z.string().describe('The value of <table_name>'),
               })),
             }),
           },
           {
             name: 'tags_search',
-            description: 'Return only number "1"',
+            description: 'Return only number "1" as done.',
             parameters: z.object({
               done: z.string().describe('number "1"'),
             }),
@@ -183,16 +254,31 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           <Skeleton/>
         </BotCard>);
 
+        console.log("recommendations", recommendations)
         console.log("🎯vector_search")
-        const tableName = name === TabName.ACTIVITIES ? "activities" : "places";
         const select = "id, images, name, mapsUrl, address, bookingUrl, district, openingHours, articleUrl, articleTitle";
+        const placesRecordsIds = recommendations.filter(item => {
+          return item.tableName === 'places';
+        }).map((rec) => rec.businessId)
+
+        const activitiesRecordsIds = recommendations.filter(item => {
+          return item.tableName === 'activities';
+        }).map((rec) => rec.businessId)
+
+
         const {
-          data,
+          data: activities,
+        } = await supabase.from("activities").select(select).in('id', activitiesRecordsIds);
+
+        const {
+          data: places,
           error
-        } = await supabase.from(tableName).select(select).in('id', recommendations.map((r) => Number(r.businessId)));
+        } = await supabase.from("places").select(select).in('id', placesRecordsIds);
+
+        const allData = [...(activities || []), ...(places || [])];
 
         const recommendationData = recommendations.map((aiRec) => {
-          const business = data?.find((doc) => doc.id === Number(aiRec.businessId));
+          const business = allData.find((doc) => doc.id === Number(aiRec.businessId));
 
           return {
             articleTitle: business?.articleTitle,
@@ -208,7 +294,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           }
         });
 
-        if (!recommendationData) {
+        if (recommendationData.length === 0) {
           reply.done(
             <div className="flex flex-col gap-4">
               <BotCard>
@@ -248,23 +334,35 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
         </BotCard>);
 
         console.log("🏷️tags_search")
-        const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
+        const [placesResponse, activitiesResponse] = await Promise.all([searchPlacesByTags(filterTags), searchActivitiesByTags(filterTags)])
+        const response = [...placesResponse.slice(0,2), ...activitiesResponse.slice(0,2)]
 
-        console.log("response", response.length)
-        const context = response.map((item) => {
-          return `<restaurant>
-                 Restaurant name: ${item.name}.
-                 Tags: ${item.tags}. 
-                 Matched tags: ${item.matched_tags}.
-                 Searched tags: ${item.searched_tags}.
-                 About restaurant: ${item.articleTitle}. \n ${item.articleContent}
-                 <business_id> ${item.id} </business_id>
-                 </restaurant>.\n`
-        }).join(", ")
 
-        const [recommendationsResponse] = await Promise.all([recommendationCreator(context, content, aiStateFiltered)])
+        let placesContext = "";
 
-        console.log("recommendationsResponse length", recommendationsResponse?.recommendations?.length)
+          placesResponse.slice(0,2).map((item) => {
+            placesContext += `<place>
+                   Restaurant name: ${item.name}.
+                   Article title: ${item.articleTitle}. \n 
+                   Article content: ${item.articleContent}. \n
+                   <place_id> ${item.id} </place_id>
+                 </place>.\n`
+          })
+
+        let activitiesContext = "";
+
+        activitiesResponse.slice(0,2).map((item) => {
+            activitiesContext += `<activity>
+                 Name: ${item.name}. \n 
+                 Article title: ${item.articleTitle}. \n 
+                 Article content: ${item.articleContent}. \n
+                 <place_id> ${item.id} </place_id>. \n
+                 </activity>.\n`
+        })
+
+        const context = `Places context ${placesContext} \n Activities context ${activitiesContext}`
+
+        const recommendationsResponse = await recommendationCreator(context, content, aiStateFiltered)
 
         const recommendationData = recommendationsResponse?.recommendations.map((aiRec) => {
           const business = response.find((r) => r.id === aiRec.businessId);

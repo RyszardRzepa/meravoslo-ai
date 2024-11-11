@@ -23,15 +23,24 @@ export const recommendationCreator = async (context: string, userQuestion: strin
         content: "You are a helpful assistant designed to output JSON. Always return recommendations in the users language",
       },
       {
-        role: "user", content: `
-      Please return recommendations based on the context and chat history.
-      Guidelines:
-      Create up to three recommendations based on the context number of <restaurant>. So if there is only one <restaurant> in the context, return only one recommendation, etc.
-      Returned values:
-      - businessId: you can find in context inside <business_id>.
-      - content: is the recommendation text in the users language that you can find by looking in the <userQuestion> value.
-      Context: <context> ${context} </context>.
-      User Question: <userQuestion> ${userQuestion} </userQuestion>.
+        role: "user", content: `Generate up to three restaurant recommendations based on the provided context and user question.
+
+Use the number of restaurants mentioned in the context to control the number of recommendations: if there is only one restaurant mentioned, return only one recommendation, and similarly for two or three.
+
+# Guidelines
+- Extract details from the following fields in the input:
+  - Context: \`<context> ${context} </context>\`
+  - User Question: \`<userQuestion> ${userQuestion} </userQuestion>\`
+  
+- For each recommendation, provide:
+  - \`businessId\`: Extracted from \`<place_id>\` inside the context.
+  - \`content\`: A recommendation text tailored to the user's language, based on information from the \`userQuestion\` field.
+
+- The maximum number of recommendations to return is 3. Make suggestions according to the available mentions in the context.
+
+# Output Format
+
+The response should be in JSON format. Include an array for recommendations, with a maximum of three entries, structured as follows:.
       `
       },
     ],

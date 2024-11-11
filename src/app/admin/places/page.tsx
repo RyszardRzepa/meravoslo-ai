@@ -9,7 +9,6 @@ async function getData() {
 
 export default async function Places() {
   const data = await getData();
-  console.log("data", data)
   return (
     <div>
       {/*@ts-ignore*/}

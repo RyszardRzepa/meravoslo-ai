@@ -1,4 +1,4 @@
-import { embed } from 'ai';
+import { embed, Embedding } from 'ai';
 import { openai } from "@/lib/models";
 import { supabase } from "@/lib/supabase/backend";
 
@@ -33,47 +33,62 @@ export async function createEmbedding(text: string) {
   return embedding;
 }
 
-export async function vectorSearchPlaces(message: string) {
-  const embedding = await createEmbedding(message);
-
+export async function vectorSearchPlaces(embedding: Embedding) {
   const { error: matchError, data } = await supabase.rpc('vector_search_places', {
-    query_embedding: embedding, match_threshold: 0.5, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.4, match_count: 2,
   });
 
+  console.log("vectorSearchPlaces data", data.map(item => item.name + " - " + item.similarity))
   // filter out the documents that have the same restaurant id
-  const restaurantIds = new Set();
+  const uniqueIds = new Set();
   const filteredData = data.filter((b: Business) => {
-    if (restaurantIds.has(b.id)) {
+    if (uniqueIds.has(b.id)) {
       return false;
     }
-    restaurantIds.add(b.id);
+    uniqueIds.add(b.id);
     return true;
   });
 
-  return filteredData.map((doc: Business) => {
-    return `<restaurant>
-                Business Name: ${doc.name}. 
+  let context = "<tableName>places</tableName>\n";
+
+  filteredData.map((doc: Business) => {
+    context += `<place>
+                Activity Name: ${doc.name}. 
                 About: ${doc.articleContent}. 
-                <business_id>${doc?.id}</business_id>.
-              </<restaurant>`;
+                <place_id>${doc?.id}</place_id>.
+              </<place>\n`;
   });
+
+  return context
 }
 
-export async function vectorSearchActivities(message: string) {
-  const embedding = await createEmbedding(message);
-
+export async function vectorSearchActivities(embedding: Embedding) {
   const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
-    query_embedding: embedding, match_threshold: 0.5, match_count: 3,
+    query_embedding: embedding, match_threshold: 0.4, match_count: 2,
   });
 
-  console.log("data", data)
-  return data.map((doc: Business) => {
-    return `<activity>
+  console.log("vectorSearchActivities data", data.map(item => item.name + " - " + item.similarity))
+
+  const uniqueIds = new Set();
+  const filteredData = data.filter((b: Business) => {
+    if (uniqueIds.has(b.id)) {
+      return false;
+    }
+    uniqueIds.add(b.id);
+    return true;
+  });
+
+  let context = "<tableName>activities</tableName>\n";
+
+  filteredData.map((doc: Business) => {
+    context += `<activity>
                 Activity Name: ${doc.name}. 
                 About: ${doc.articleContent}. 
                 <activity_id>${doc?.id}</activity_id>.
-              </<restaurant>`;
+              </<activity>\n`;
   });
+
+  return context
 }
 
 export async function searchPlacesByTags(tags: string[]): Promise<BusinessByTags[]> {

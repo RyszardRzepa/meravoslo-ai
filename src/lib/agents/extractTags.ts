@@ -1,6 +1,7 @@
 import { openai } from "@/lib/models";
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
 import { supabase } from "@/lib/supabase/backend";
+import { z } from "zod";
 
 function getCurrentSeason(): string {
   const today = new Date();
@@ -15,6 +16,26 @@ function getCurrentSeason(): string {
   } else {
     return "Spring";
   }
+}
+
+export async function isActivity(question: string) {
+  // Can I solve this in tags? So it the activity tag exist, call the activity agent?
+  // How to handle followup questions? This could return empty value.
+  // Add function to call food and activity agent?
+  // run search for both places and activity?
+
+  const { object } = await generateObject({
+    model: openai('gpt-4o-mini'),
+    schema: z.object({
+      recipe: z.object({
+        name: z.string(),
+        ingredients: z.array(z.string()),
+        steps: z.array(z.string()),
+      }),
+    }),
+    system: 'you can identify if user is asking for food-drink or activity',
+    prompt: 'Return ',
+  });
 }
 
 
