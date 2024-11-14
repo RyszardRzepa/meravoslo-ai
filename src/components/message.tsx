@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useActions, useUIState } from "ai/rsc";
 import type { AI } from "@/app/actions/ai";
 import { saveMessage } from "@/app/actions/db";
-import { Role } from "@/lib/types";
+import { Role, SearchType } from "@/lib/types";
 
 export function UserMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -94,7 +94,7 @@ export function SuggestionCard({
               variant="link"
               className="h-auto p-0 text-sm text-left text-gray-800"
               onClick={async () => {
-                saveMessage({ message: suggestion, role: Role.User, uid, threadId });
+                saveMessage({ message: suggestion, role: Role.User, uid, threadId, type: SearchType.Inspirations });
 
                 setMessages(currentMessages => [
                   // Remove the last message

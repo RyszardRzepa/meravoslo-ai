@@ -1,7 +1,6 @@
 import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState, getAIState } from 'ai/rsc';
 import { BotCard, BotMessage } from '@/components/message';
-import { Embedding } from 'ai';
 import { runAsyncFnWithoutBlocking, runOpenAICompletion } from '@/lib/utils';
 import { Skeleton } from '@/components/skeleton';
 import {
@@ -19,7 +18,7 @@ import { supabase } from "@/lib/supabase/backend";
 import Recommendations from "@/components/recommendations";
 import { recommendationCreator } from "@/lib/agents/recommendationCreator";
 import { OpenAI } from "openai";
-import { Recommendation, Role, TabName } from "@/lib/types";
+import { Recommendation, Role, SearchType, TabName } from "@/lib/types";
 import { saveMessage } from "@/app/actions/db";
 import { spinner } from '@/components/spinner';
 import { handleGlobalError } from "@/lib/handleGlobalError";
@@ -131,7 +130,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
   try {
     // Save user question to db
-    saveMessage({ message: content, role: Role.User, uid: uid!, threadId });
+    saveMessage({ message: content, role: Role.User, uid: uid!, threadId, type: SearchType.Inspirations });
 
     const aiState = getMutableAIState<typeof AI>();
 
@@ -157,7 +156,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
 
       // const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
 
-      const [filterTags, prompt] = await Promise.all([
+      const [filterTags] = await Promise.all([
         extractTags(content),
         // supabase.from("prompts").select("text").eq("name", promptName)
       ]);
@@ -242,7 +241,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
             completionType: 'markdown',
             userQuestionTags: filterTags,
             uid: uid!,
-            threadId
+            threadId,
+            type: SearchType.Inspirations
           });
           reply.done();
           aiState.done([...aiState.get(), { role: 'assistant', content }]);
@@ -318,7 +318,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           completionType: 'vector_search',
           userQuestionTags: filterTags,
           uid: uid!,
-          threadId
+          threadId,
+          type: SearchType.Inspirations
         });
 
         aiState.done([...aiState.get(), {
@@ -387,7 +388,8 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
           completionType: 'tags_search',
           userQuestionTags: filterTags,
           uid: uid!,
-          threadId
+          threadId,
+          type: SearchType.Inspirations
         })
 
         if (!recommendationData) {

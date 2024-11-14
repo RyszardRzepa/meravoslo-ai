@@ -11,6 +11,7 @@ export type Business = {
   websiteUrl: string,
   menuText: string,
   district: string,
+  articleUrl: string,
   openingHours: string,
   tags: string[],
   articleContent: string,
@@ -38,7 +39,6 @@ export async function vectorSearchPlaces(embedding: Embedding) {
     query_embedding: embedding, match_threshold: 0.4, match_count: 2,
   });
 
-  console.log("vectorSearchPlaces data", data.map(item => item.name + " - " + item.similarity))
   // filter out the documents that have the same restaurant id
   const uniqueIds = new Set();
   const filteredData = data.filter((b: Business) => {
@@ -66,8 +66,6 @@ export async function vectorSearchActivities(embedding: Embedding) {
   const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
     query_embedding: embedding, match_threshold: 0.4, match_count: 2,
   });
-
-  console.log("vectorSearchActivities data", data.map(item => item.name + " - " + item.similarity))
 
   const uniqueIds = new Set();
   const filteredData = data.filter((b: Business) => {

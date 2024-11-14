@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ChatTab from '@/components/ChatTab';
 import { TabName } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
+import SearchTab from "@/components/search-tab";
 
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
@@ -84,22 +85,18 @@ export default function Page() {
               />
             </TabsContent>
             <TabsContent className="overflow-y-scroll" value={TabName.ACTIVITIES}>
-              <ChatTab
+              <SearchTab
                 uid={uid}
                 name={TabName.ACTIVITIES}
                 threadId={aktiviteterThreadId}
                 exampleMessages={[
                   {
-                    heading: 'Gi meg tips for aktiviteter denne helgen',
-                    message: 'Gi meg tips for aktiviteter denne helgen',
+                    heading: 'Hva kan jeg gjøre på tirsdag kveld med vennen min?',
+                    message: 'Hva kan jeg gjøre på tirsdag kveld med vennen min?',
                   },
                   {
-                    heading: 'Hva kan vi gjøre gratis?',
-                    message: 'Hva kan vi gjøre gratis?',
-                  },
-                  {
-                    heading: 'Finn noe kult å gjøre for to personer',
-                    message: 'Finn noe kult å gjøre for to personer',
+                    heading: 'Fire venner, hvor er det bra drinker og fin utsikt?',
+                    message: 'Fire venner, hvor er det bra drinker og fin utsikt?',
                   },
                 ]}
               />

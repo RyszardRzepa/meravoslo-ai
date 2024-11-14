@@ -73,11 +73,16 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        fillText: {
+          '0%': { backgroundColor: 'rgba(255, 218, 185, 0.3)' },
+          '100%': { backgroundColor: 'transparent' }
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        'fill-text': 'fillText 0.5s ease-out forwards'
       },
     },
   },
