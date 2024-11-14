@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useUIState, useActions } from 'ai/rsc';
+import { useRef, useState } from 'react';
+import { useUIState } from 'ai/rsc';
 import { type AI } from '../app/actions/ai';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import { Button } from "@/components/ui/button";
 import { useScrollToBottom } from "@/lib/hooks/use-scroll-to-bottom";
 import { saveMessage, searchForActivities, searchForPlaces } from "@/app/actions/db";
-import { Edit, Loader2 } from "lucide-react"; // If you don't have lucide-react, you can use any other loading icon
-import debounce from 'lodash.debounce';
+import { Loader2 } from "lucide-react"; // If you don't have lucide-react, you can use any other loading icon
 import { SheetContent, SheetDescription, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Textarea from "react-textarea-autosize";
