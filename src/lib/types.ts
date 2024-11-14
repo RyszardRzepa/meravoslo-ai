@@ -3,6 +3,11 @@ export enum Role {
   Assistant = "assistant",
 }
 
+export enum SearchType {
+  Search = "search",
+  Inspirations = "inspirations",
+}
+
 export type Recommendation = {
   articleTitle: string;
   businessName: string;

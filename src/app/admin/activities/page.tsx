@@ -6,8 +6,7 @@ async function getData() {
   const {
     data,
     error
-  } = await supabase.from("activities").select("id, name, articleTitle, articleContent, images, tags," +
-    " address");
+  } = await supabase.from("activities").select("id, name, articleTitle, articleContent, images, tags");
   return data
 }
 
