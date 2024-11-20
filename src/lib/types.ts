@@ -1,6 +1,7 @@
 export enum Role {
   User = "user",
   Assistant = "assistant",
+  Function = "function",
 }
 
 export enum SearchType {

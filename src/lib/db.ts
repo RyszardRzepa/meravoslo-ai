@@ -1,4 +1,4 @@
-import { embed, Embedding } from 'ai';
+import { embed } from 'ai';
 import { openai } from "@/lib/models";
 import { supabase } from "@/lib/supabase/backend";
 
@@ -11,7 +11,6 @@ export type Business = {
   websiteUrl: string,
   menuText: string,
   district: string,
-  articleUrl: string,
   openingHours: string,
   tags: string[],
   articleContent: string,
@@ -34,59 +33,24 @@ export async function createEmbedding(text: string) {
   return embedding;
 }
 
-export async function vectorSearchPlaces(embedding: Embedding) {
+export async function vectorSearchPlaces(message: string) {
+  const embedding = await createEmbedding(message);
+
   const { error: matchError, data } = await supabase.rpc('vector_search_places', {
-    query_embedding: embedding, match_threshold: 0.4, match_count: 2,
+    query_embedding: embedding, match_threshold: 0.3, match_count: 6,
   });
 
-  // filter out the documents that have the same restaurant id
-  const uniqueIds = new Set();
-  const filteredData = data.filter((b: Business) => {
-    if (uniqueIds.has(b.id)) {
-      return false;
-    }
-    uniqueIds.add(b.id);
-    return true;
-  });
-
-  let context = "<tableName>places</tableName>\n";
-
-  filteredData.map((doc: Business) => {
-    context += `<place>
-                Activity Name: ${doc.name}. 
-                About: ${doc.articleContent}. 
-                <place_id>${doc?.id}</place_id>.
-              </<place>\n`;
-  });
-
-  return context
+  return data
 }
 
-export async function vectorSearchActivities(embedding: Embedding) {
+export async function vectorSearchActivities(message: string) {
+  const embedding = await createEmbedding(message);
+
   const { error: matchError, data } = await supabase.rpc('vector_search_activities', {
-    query_embedding: embedding, match_threshold: 0.4, match_count: 2,
+    query_embedding: embedding, match_threshold: 0.4, match_count: 6,
   });
 
-  const uniqueIds = new Set();
-  const filteredData = data.filter((b: Business) => {
-    if (uniqueIds.has(b.id)) {
-      return false;
-    }
-    uniqueIds.add(b.id);
-    return true;
-  });
-
-  let context = "<tableName>activities</tableName>\n";
-
-  filteredData.map((doc: Business) => {
-    context += `<activity>
-                Activity Name: ${doc.name}. 
-                About: ${doc.articleContent}. 
-                <activity_id>${doc?.id}</activity_id>.
-              </<activity>\n`;
-  });
-
-  return context
+  return data
 }
 
 export async function searchPlacesByTags(tags: string[]): Promise<BusinessByTags[]> {
