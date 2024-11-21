@@ -25,4 +25,5 @@ export type Recommendation = {
 export enum TabName {
   EAT_DRINK = "eat_drink",
   ACTIVITIES = "activities",
+  SEARCH = "search",
 }
