@@ -25,7 +25,6 @@ export async function saveMessage({ role, message, jsonResponse, userQuestionTag
   jsonResponse?: Record<string, any>[];
   completionType?: string;
   userQuestionTags?: string[];
-  type: SearchType;
   role: Role;
   uid: string;
   threadId: number;
