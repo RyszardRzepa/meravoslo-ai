@@ -150,7 +150,7 @@ ${isFollowUp ? "Important! This is a followup question, don't call tools tags_se
       }
 
       const completion = runOpenAICompletion(client, {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         stream: true,
         temperature: 0.5,
         max_tokens: 10000,
