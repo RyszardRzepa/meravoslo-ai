@@ -27,3 +27,8 @@ export enum TabName {
   ACTIVITIES = "activities",
   SEARCH = "search",
 }
+
+export enum SearchType {
+  Search = "search",
+  Inspirations = "inspirations",
+}

@@ -12,6 +12,7 @@ export type Business = {
   menuText: string,
   district: string,
   openingHours: string,
+  articleUrl: string,
   tags: string[],
   articleContent: string,
   images : Array<{ url: string, alt: string }>,

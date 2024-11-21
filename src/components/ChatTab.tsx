@@ -91,6 +91,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
             </>
           ) : (
             <EmptyScreen
+              selectedTab={name}
               title={emptyScreenTitle}
               exampleMessages={exampleMessages}
               submitMessage={async message => {

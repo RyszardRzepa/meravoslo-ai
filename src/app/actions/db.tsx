@@ -29,6 +29,7 @@ export async function saveMessage({ role, message, jsonResponse, userQuestionTag
   role: Role;
   uid: string;
   threadId: number;
+  type?: SearchType;
 }): Promise<void> {
   await supabase.from('messages').insert(
     { message, role, uid, threadId, jsonResponse, userQuestionTags, completionType , type },

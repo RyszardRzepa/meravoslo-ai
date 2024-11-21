@@ -6,12 +6,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ChatTab from '@/components/ChatTab';
 import { TabName } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
+import SearchTab from "@/components/search-tab";
 
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('spise-drikke');
   const spiseDrikkeThreadId = useRef(new Date().getTime()).current;
   const aktiviteterThreadId = useRef(new Date().getTime()).current;
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
 
   useEffect(() => {
@@ -122,6 +125,25 @@ export default function Page() {
                   {
                     heading: 'Finn noe kult å gjøre for to personer',
                     message: 'Finn noe kult å gjøre for to personer',
+                  },
+                ]}
+              />
+            </TabsContent>
+            <TabsContent className="overflow-y-scroll" value={TabName.SEARCH}>
+              <SearchTab
+                uid={uid}
+                name={TabName.SEARCH}
+                threadId={aktiviteterThreadId}
+                data={searchResults}
+                setData={setSearchResults}
+                exampleMessages={[
+                  {
+                    heading: 'Hva kan jeg gjøre på tirsdag kveld med vennen min?',
+                    message: 'Hva kan jeg gjøre på tirsdag kveld med vennen min?',
+                  },
+                  {
+                    heading: 'Fire venner, hvor er det bra drinker og fin utsikt?',
+                    message: 'Fire venner, hvor er det bra drinker og fin utsikt?',
                   },
                 ]}
               />
