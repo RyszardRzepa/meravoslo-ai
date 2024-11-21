@@ -3,7 +3,7 @@ import { generateText, generateObject } from 'ai';
 import { supabase } from "@/lib/supabase/backend";
 import { z } from "zod";
 
-function getCurrentSeason(): string {
+export function getCurrentSeason(): string {
   const today = new Date();
   const month = today.getMonth(); // 0-11
 

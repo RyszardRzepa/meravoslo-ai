@@ -1,11 +1,7 @@
 export enum Role {
   User = "user",
   Assistant = "assistant",
-}
-
-export enum SearchType {
-  Search = "search",
-  Inspirations = "inspirations",
+  Function = "function",
 }
 
 export type Recommendation = {
@@ -24,4 +20,10 @@ export type Recommendation = {
 export enum TabName {
   EAT_DRINK = "eat_drink",
   ACTIVITIES = "activities",
+  SEARCH = "search",
+}
+
+export enum SearchType {
+  Search = "search",
+  Inspirations = "inspirations",
 }
