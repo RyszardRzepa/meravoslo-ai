@@ -4,11 +4,6 @@ export enum Role {
   Function = "function",
 }
 
-export enum SearchType {
-  Search = "search",
-  Inspirations = "inspirations",
-}
-
 export type Recommendation = {
   articleTitle: string;
   businessName: string;
