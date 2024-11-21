@@ -21,12 +21,16 @@ interface ChatTabProps {
   setData: (results: any[]) => void;
 }
 
+const maxCharacters = 80;
+
 export default function SearchTab({ uid, threadId, exampleMessages, data, setData }: ChatTabProps) {
   const { formRef, onKeyDown } = useEnterSubmit();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState<string>("https://meravoslo.no");
   const [inputValue, setInputValue] = useState('');
+
+
 
   const getUniqueArticles = (articles: { articleUrl: string; }[]) => {
     const seen = new Set();
@@ -225,7 +229,12 @@ export default function SearchTab({ uid, threadId, exampleMessages, data, setDat
                       rows={1}
                       value={inputValue}
                       onChange={e => setInputValue(e.target.value)}
+                      maxLength={maxCharacters}
                     />
+                    <span
+                      className={`absolute bottom-1 right-16 text-xs ${inputValue.length === maxCharacters ? 'text-red-500' : 'text-gray-500'}`}>
+    {inputValue.length}/{maxCharacters}
+  </span>
                     <div className="absolute right-0 right-4 md:right-4 lg:right-4 top-3">
                       <Tooltip>
                         <TooltipTrigger asChild>

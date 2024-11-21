@@ -14,6 +14,8 @@ interface ChatInputProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
+const maxCharacters = 80;
+
 export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disabled }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
 
@@ -50,7 +52,8 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                 </TooltipTrigger>
                 <TooltipContent>Ny Chat</TooltipContent>
               </Tooltip>
-              <div className="relative flex flex-col w-full  overflow-hidden max-h-60 grow bg-peach border border-peachDark rounded-full pr-14 pl-6">
+              <div
+                className="relative flex flex-col w-full  overflow-hidden max-h-60 grow bg-peach border border-peachDark rounded-full pr-14 pl-6">
                 <Textarea
                   disabled={disabled}
                   ref={inputRef}
@@ -66,7 +69,12 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                   rows={1}
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
+                  maxLength={maxCharacters}
                 />
+                <span
+                  className={`absolute bottom-1 right-16 text-xs ${inputValue.length === maxCharacters ? 'text-red-500' : 'text-gray-500'}`}>
+    {inputValue.length}/{maxCharacters}
+  </span>
                 <div className="absolute right-0 right-4 md:right-4 lg:right-4 top-3">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -76,7 +84,7 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                         disabled={inputValue === ''}
                         className="bg-transparent shadow-none hover:bg-transparent"
                       >
-                        <IconSend />
+                        <IconSend/>
                         <span className="sr-only">Send melding</span>
                       </Button>
                     </TooltipTrigger>
@@ -86,7 +94,8 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
               </div>
             </div>
             <p className=" text-xs pt-2 text-center text-gray-600">
-              Mer av Oslo AI kan gjøre feil, så sjekk viktig informasjon. Les  <Link href="https://meravoslo.no/chat-terms-service" target="_blank"> våre <span className="underline"> vilkår for tjenesten.</span></Link>
+              Mer av Oslo AI kan gjøre feil, så sjekk viktig informasjon. Les <Link
+              href="https://meravoslo.no/chat-terms-service" target="_blank"> våre <span className="underline"> vilkår for tjenesten.</span></Link>
             </p>
           </form>
         </div>
