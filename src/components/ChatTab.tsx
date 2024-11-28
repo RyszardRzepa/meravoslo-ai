@@ -147,6 +147,7 @@ export default function ChatTab({ uid, threadId, exampleMessages, name }: ChatTa
           </div>
         ) : (
           <ChatInput
+            onChatReset={() => handleNewChat()}
             onSubmit={handleSubmit}
             formRef={formRef}
             inputRef={inputRef}

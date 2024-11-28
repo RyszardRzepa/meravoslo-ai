@@ -15,7 +15,7 @@ import Recommendations from "@/components/recommendations";
 import { recommendationCreator } from "@/lib/agents/recommendationCreator";
 import { OpenAI } from "openai";
 import { Recommendation, Role, TabName } from "@/lib/types";
-import { saveMessage } from "@/app/actions/db";
+import { hybridSearchActivities, hybridSearchPlaces, saveMessage } from "@/app/actions/db";
 import { spinner } from '@/components/spinner';
 import { handleGlobalError } from "@/lib/handleGlobalError";
 import { getQuestionContext } from "@/lib/agents/getQuestionContext";
@@ -80,7 +80,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
     const userQuestionHistory: string = aiState.get()
       .filter((item: any) => item.role === Role.User)
       .map((item, i) => `<question>User asked: ${item.content}<question>`).join('.\n');
-
+    const chatHistory = JSON.stringify(aiState.get())
 
     aiState.update([
       ...aiStateFiltered,
@@ -99,13 +99,17 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
         </BotCard>
       );
 
-      const vectorSearch = name === TabName.ACTIVITIES ? vectorSearchActivities : vectorSearchPlaces;
+      const hybridSearch = name === TabName.ACTIVITIES ? hybridSearchActivities : hybridSearchPlaces;
       const promptName = name === TabName.ACTIVITIES ? "activityRecommendations" : "placeRecommendation";
 
-      const { question, isFollowUp, isCorrectQuestion } = await getQuestionContext(content, userQuestionHistory);
+      const { question } = await getQuestionContext({
+        question: content,
+        userQuestionHistory,
+        chatHistory,
+      });
 
       const [searchResponse, filterTags, prompt] = await Promise.all([
-        vectorSearch(question),
+        hybridSearch(question),
         extractTags(question),
         supabase.from("prompts").select("text").eq("name", promptName)
       ]);
@@ -117,40 +121,28 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       const context = uniqueSearchResponse.slice(0, 3)?.map((doc: any) => {
         return `<data>
                   Activity Name: ${doc.name}. 
-                  About: ${doc.articleContent}. 
+                  About: ${doc.articleContent}.
                   <doc_id>${doc?.id}</doc_id>.
                <data>`;
       }).join('\n');
 
-      console.log("question:", question )
-      console.log("followupQuestion:", isFollowUp)
-      console.log("isCorrectQuestion", isCorrectQuestion)
+      console.log("rephrased question:", question)
       console.log("filterTags: ", filterTags)
+      console.log("savedSearchResponseIds", savedSearchResponseIds)
 
       let enhancedPrompt = `
-${isFollowUp ? "Important! This is a followup question, don't call tools tags_search" +
-        " or vector_search. Respond to user question using existing context" : ""} \n
       ${prompt?.data?.[0]?.text}. \n
       Context:  <context> ${context} </context>. \n
       Filter tags: filterTags:${filterTags.length ? "true" : "false"} \n
-      Chat History: <chatHistory> ${JSON.stringify(aiState.get())} </chatHistory>. \n
+      Chat History: <chatHistory> ${chatHistory} </chatHistory>. \n
       
       Recommend only ${name} from <data> that is a good match for current season: ${getCurrentSeason()}. For example
        don't recommend mushrom picking in winter \n
       
       User question: ${question}`;
 
-      if(!isCorrectQuestion && !isFollowUp) {
-        enhancedPrompt = `Don't call any tools. Respond only this: ${name === TabName.ACTIVITIES ? "Jeg kan dessverre" +
-          " bare gi" +
-          " anbefalinger om" +
-          " aktiviteter i" +
-          " Oslo." +
-          " Du kan sjekke ut fanen 'Mat og Drikke' for gode mat- og drikkealternativer." : "Jeg kan dessverre bare gi anbefalinger om mat og drikke i Oslo. Du kan sjekke ut fanen 'Aktiviteter' for gode aktivitetsalternativer. Hvis du har spørsmål om mat og drikke, er jeg her for å hjelpe!"}`
-      }
-
       const completion = runOpenAICompletion(client, {
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         stream: true,
         temperature: 0.5,
         max_tokens: 10000,
@@ -307,7 +299,8 @@ ${isFollowUp ? "Important! This is a followup question, don't call tools tags_se
         console.log("🏷️tags_search")
         const response = TabName.EAT_DRINK === name ? await searchPlacesByTags(filterTags) : await searchActivitiesByTags(filterTags)
 
-        const searchIds = response.map((doc) => {
+        console.log("response length", response.length)
+        const searchIds = response.slice(0,3).map((doc) => {
           return Number(doc.id)
         })
 

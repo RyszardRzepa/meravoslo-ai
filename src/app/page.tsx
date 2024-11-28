@@ -10,11 +10,9 @@ import SearchTab from "@/components/search-tab";
 
 export default function Page() {
   const [uid, setUid] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('spise-drikke');
   const spiseDrikkeThreadId = useRef(new Date().getTime()).current;
   const aktiviteterThreadId = useRef(new Date().getTime()).current;
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
 
 
   useEffect(() => {
@@ -37,7 +35,7 @@ export default function Page() {
       <div id="chat-container" className="bg-background">
         <div className="fixed top-0 left-0 right-0 z-10 bg-background border-b border-b-peachDark">
 
-          <Tabs defaultValue={TabName.EAT_DRINK} className="" onValueChange={setActiveTab}>
+          <Tabs defaultValue={TabName.EAT_DRINK} className="">
             <TabsList className="rounded-none grid w-full auto-cols-fr grid-flow-col bg-transparent mb-2 gap-2">
             <TabsTrigger
                 value={TabName.EAT_DRINK}

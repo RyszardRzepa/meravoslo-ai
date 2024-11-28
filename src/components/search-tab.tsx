@@ -1,16 +1,13 @@
 import { useRef, useState } from 'react';
-import { useUIState } from 'ai/rsc';
-import { type AI } from '../app/actions/ai';
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import { Button } from "@/components/ui/button";
-import { useScrollToBottom } from "@/lib/hooks/use-scroll-to-bottom";
-import { saveMessage, searchForActivities, searchForPlaces } from "@/app/actions/db";
+import { hybridSearchPlacesAndActivities, saveMessage, searchForActivities, searchForPlaces } from "@/app/actions/db";
 import { Loader2 } from "lucide-react"; // If you don't have lucide-react, you can use any other loading icon
 import { SheetContent, SheetDescription, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Textarea from "react-textarea-autosize";
 import { IconClose, IconSend } from "@/components/ui/icons";
-import { Role, SearchType, TabName } from "@/lib/types";
+import { Role, SearchType } from "@/lib/types";
 
 interface ChatTabProps {
   uid: string | null;
@@ -29,8 +26,6 @@ export default function SearchTab({ uid, threadId, exampleMessages, data, setDat
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState<string>("https://meravoslo.no");
   const [inputValue, setInputValue] = useState('');
-
-
 
   const getUniqueArticles = (articles: { articleUrl: string; }[]) => {
     const seen = new Set();
@@ -57,9 +52,9 @@ export default function SearchTab({ uid, threadId, exampleMessages, data, setDat
       uid: uid!,
       type: SearchType.Search
     })
-    const places = (await searchForPlaces(inputText))
-    const activities = (await searchForActivities(inputText))
-    setData([...getUniqueArticles(places), ...getUniqueArticles(activities)]);
+    const results = await hybridSearchPlacesAndActivities(inputText)
+
+    setData(results);
     setIsLoading(false);
   }
 
@@ -235,7 +230,7 @@ export default function SearchTab({ uid, threadId, exampleMessages, data, setDat
                       className={`absolute bottom-1 right-16 text-xs ${inputValue.length === maxCharacters ? 'text-red-500' : 'text-gray-500'}`}>
     {inputValue.length}/{maxCharacters}
   </span>
-                    <div className="absolute right-0 right-4 md:right-4 lg:right-4 top-3">
+                    <div className="absolute right-4 md:right-4 lg:right-4 top-3">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button

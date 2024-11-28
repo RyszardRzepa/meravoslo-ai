@@ -12,11 +12,12 @@ interface ChatInputProps {
   formRef: RefObject<HTMLFormElement>;
   inputRef: RefObject<HTMLTextAreaElement>;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onChatReset: () => void;
 }
 
 const maxCharacters = 80;
 
-export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disabled }: ChatInputProps) {
+export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disabled, onChatReset }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,8 +43,7 @@ export default function ChatInput({ onSubmit, formRef, inputRef, onKeyDown, disa
                     size="icon"
                     className="hover:bg-peachDark bg-transparent shadow-none border-none w-10 h-10 rounded-full"
                     onClick={e => {
-                      e.preventDefault();
-                      window.location.reload();
+                      onChatReset()
                     }}
                   >
                     <Edit className="h-5 w-5"/>
