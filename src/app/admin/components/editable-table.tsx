@@ -39,6 +39,7 @@ import { MoreVertical, PencilIcon } from "lucide-react";
 import { supabaseFrontent } from "@/lib/supabase/frontend";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TabName } from "@/lib/types";
+import { isActivity } from "@/lib/agents/extractTags";
 
 
 const dummyData: Business[] | (() => Business[]) = []
@@ -47,6 +48,7 @@ interface AddRecordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (record: Business) => void;
+  name: string
 }
 
 const TagsMultipleSelect = (props: any, { onValueChange }: {
@@ -80,19 +82,20 @@ const TagsMultipleSelect = (props: any, { onValueChange }: {
   )
 }
 
-const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd }) => {
+const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd, name }) => {
+  const [loading, setLoading] = useState(false);
   const [newRecord, setNewRecord] = useState<Business>({
     name: '',
     articleTitle: '',
     articleContent: '',
+    articleUrl: '',
     images: [],
     tags: [],
-    address: '',
-    mapsUrl: '',
-    openingHours: '',
-    district: ''
   });
 
+  const isPlaces = name === TabName.EAT_DRINK;
+
+  console.log("isPlaces", isPlaces)
   const [imageInputs, setImageInputs] = useState<{ [key: number]: { url: string, alt: string } }>({});
 
   const handleAddImage = () => {
@@ -112,21 +115,20 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
     setImageInputs(rest);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     const images = Object.values(imageInputs).filter(img => img.url && img.alt);
-    onAdd({ ...newRecord, images });
+    await onAdd({ ...newRecord, images });
     setNewRecord({
       name: '',
-      articleTitle: "",
+      articleTitle: '',
       articleContent: '',
+      articleUrl: '',
       images: [],
       tags: [],
-      address: "",
-      mapsUrl: "",
-      openingHours: "",
-      district: ""
     });
+    setLoading(false);
     setImageInputs({});
     onClose();
   };
@@ -140,7 +142,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={"overflow-y-scroll max-h-screen"}>
+      <DialogContent className={"overflow-y-scroll max-h-screen bg-white"}>
         <DialogHeader>
           <DialogTitle>Add New Record</DialogTitle>
         </DialogHeader>
@@ -148,45 +150,80 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
           <Input
             value={newRecord.name}
             onChange={(e) => setNewRecord({ ...newRecord, name: e.target.value })}
-            placeholder="Enter name"
+            placeholder="Name of activity or business *"
             className="mb-2"
+            required
           />
           <Input
             value={newRecord.articleTitle}
             onChange={(e) => setNewRecord({ ...newRecord, articleTitle: e.target.value })}
-            placeholder="Enter article title"
+            placeholder="Article title *"
             className="mb-2"
+            required
+          />
+          <Input
+            value={newRecord.articleUrl}
+            onChange={(e) => setNewRecord({ ...newRecord, articleUrl: e.target.value })}
+            placeholder="Article Url *"
+            className="mb-2"
+            required
           />
           <Textarea
             value={newRecord.articleContent}
             onChange={(e) => setNewRecord({ ...newRecord, articleContent: e.target.value })}
-            placeholder="Enter article content"
+            placeholder="Article content *"
             className="mb-2"
+            required
           />
           <Input
             value={newRecord.address}
             onChange={(e) => setNewRecord({ ...newRecord, address: e.target.value })}
-            placeholder="Enter address"
+            placeholder="Address"
             className="mb-2"
           />
           <Input
             value={newRecord.mapsUrl}
             onChange={(e) => setNewRecord({ ...newRecord, mapsUrl: e.target.value })}
-            placeholder="Enter Google Maps URL"
+            placeholder="Google Maps URL"
             className="mb-2"
           />
           <Input
             value={newRecord.openingHours}
             onChange={(e) => setNewRecord({ ...newRecord, openingHours: e.target.value })}
-            placeholder="Enter opening hours"
+            placeholder="Opening hours"
             className="mb-2"
           />
           <Input
             value={newRecord.district}
             onChange={(e) => setNewRecord({ ...newRecord, district: e.target.value })}
-            placeholder="Enter district"
+            placeholder="District"
             className="mb-2"
           />
+          {isPlaces && <Input
+            value={newRecord.bookingUrl}
+            onChange={(e) => setNewRecord({ ...newRecord, bookingUrl: e.target.value })}
+            placeholder="Booking url"
+            className="mb-2"
+          />}
+          {isPlaces && <Input
+            value={newRecord.websiteUrl}
+            onChange={(e) => setNewRecord({ ...newRecord, websiteUrl: e.target.value })}
+            placeholder="Website url"
+            className="mb-2"
+          />}
+          {isPlaces && <Input
+            value={newRecord.menuText}
+            onChange={(e) => setNewRecord({ ...newRecord, menuText: e.target.value })}
+            placeholder="Menu text content"
+            className="mb-2"
+          />
+          }
+          {isPlaces && <Input
+            value={newRecord.foodMenuUrl}
+            onChange={(e) => setNewRecord({ ...newRecord, foodMenuUrl: e.target.value })}
+            placeholder="Food Menu Url"
+            className="mb-2"
+          />}
           <div className="mb-2">
             <Button type="button" onClick={handleAddImage}>Add Image</Button>
             {Object.entries(imageInputs).map(([key, image]) => (
@@ -194,7 +231,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
                 <Input
                   value={image.url}
                   onChange={(e) => handleImageChange(Number(key), 'url', e.target.value)}
-                  placeholder="Image URL"
+                  placeholder="Image URL from an article"
                   className="mr-2"
                 />
                 <Input
@@ -219,7 +256,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({ isOpen, onClose, onAdd 
           />
           <DialogFooter>
             <Button type="button" onClick={onClose} variant="outline">Cancel</Button>
-            <Button type="submit">Add Record</Button>
+            <Button disabled={loading} type="submit">{loading ? "loading..." : "Add Record"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -244,8 +281,33 @@ const EditableTable = ({ name, data: propsData }: { name: string, data: Business
 
   const { toast } = useToast();
 
-  const handleAddRecord = (newRecord: Business) => {
-    setData([...data, newRecord]);
+  const handleAddRecord = async (newRecord: Business) => {
+    setLoading(true);
+    const rowData = newRecord
+
+    try {
+      if (TabName.ACTIVITIES === name) {
+        await saveActivityInDb([rowData]);
+      } else {
+        await savePlacesInDb([rowData]);
+      }
+      toast({
+        title: "Success",
+        description: "Record updated successfully",
+        duration: 3000,
+      });
+
+      setData([rowData, ...data]);
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update record",
+        variant: "destructive",
+        duration: 3000,
+      });
+      console.error("Error saving row:", error);
+    }
   };
 
   const handleSaveOrEditRow = async (index: number) => {
@@ -347,6 +409,7 @@ const EditableTable = ({ name, data: propsData }: { name: string, data: Business
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
               onAdd={handleAddRecord}
+              name={name}
             />
             <Table>
               <TableHeader>

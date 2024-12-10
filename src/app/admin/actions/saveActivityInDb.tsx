@@ -23,6 +23,7 @@ const saveActivityInDb = async (data: Business[]) => {
   const { error, data } = await supabase.from('activities').select('id, name')
     .eq('id', id)
 
+    console.log("error", error)
     if (error) {
       throw error;
     }

@@ -129,6 +129,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       console.log("rephrased question:", question)
       console.log("filterTags: ", filterTags)
       console.log("savedSearchResponseIds", savedSearchResponseIds)
+      console.log("rephrased question: ", question)
 
       let enhancedPrompt = `
       ${prompt?.data?.[0]?.text}. \n
@@ -142,7 +143,7 @@ async function submitUserMessage({ content, uid, threadId, name }: UserMessage) 
       User question: ${question}`;
 
       const completion = runOpenAICompletion(client, {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         stream: true,
         temperature: 0.5,
         max_tokens: 10000,

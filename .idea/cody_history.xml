@@ -467,21 +467,20 @@
           </chats>
           <defaultLlm>
             <llm>
-              <model value="anthropic/claude-3-5-sonnet-20240620" />
-              <provider value="Anthropic" />
+              <model value="anthropic::2024-10-22::claude-3-5-sonnet-latest" />
+              <provider value="anthropic" />
               <tags>
                 <list>
-                  <option value="gateway" />
-                  <option value="power" />
-                  <option value="recommended" />
                   <option value="free" />
+                  <option value="vision" />
+                  <option value="power" />
                 </list>
               </tags>
-              <title value="Claude 3.5 Sonnet" />
+              <title value="Claude 3.5 Sonnet (New)" />
               <usage>
                 <list>
-                  <option value="chat" />
                   <option value="edit" />
+                  <option value="chat" />
                 </list>
               </usage>
             </llm>
